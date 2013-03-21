@@ -474,6 +474,14 @@ rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/init.d/mysql
 # remove duplicate logrotate script
 rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/logrotate.d/mysql
 
+# remove doc files that we rather pack using %%doc
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/mariadb-%{version}/COPYING
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/mariadb-%{version}/COPYING.LESSER
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/mariadb-%{version}/INFO_BIN
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/mariadb-%{version}/INFO_SRC
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/mariadb-%{version}/INSTALL-BINARY
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/mariadb-%{version}/README
+
 %pre server
 /usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
 /usr/sbin/useradd -M -N -g mysql -o -r -d /var/lib/mysql -s /bin/bash \
