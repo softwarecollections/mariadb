@@ -3,7 +3,7 @@
 
 Name: %{?scl_prefix}mariadb
 Version: 5.5.29
-Release: 1%{?dist}
+Release: 2%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -21,7 +21,7 @@ License: GPLv2 with exceptions and LGPLv2 and BSD
 %{!?obsoletemysql:%global obsoletemysql 1}
 
 # Regression tests take a long time, you can skip 'em with this
-%{!?runselftest:%global runselftest 0}
+%{!?runselftest:%global runselftest 1}
 
 Source0: http://ftp.osuosl.org/pub/mariadb/mariadb-%{version}/kvm-tarbake-jaunty-x86/mariadb-%{version}.tar.gz
 Source3: my.cnf
@@ -710,6 +710,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Thu Mar 21 2013 Honza Horak <hhorak@redhat.com> 5.5.29-2
+- Turn on testing during build
+
 * Thu Mar 21 2013 Honza Horak <hhorak@redhat.com> 5.5.29-1
 - Initial packaging for SCL
 
