@@ -3,7 +3,7 @@
 
 Name: %{?scl_prefix}mariadb
 Version: 5.5.29
-Release: 2%{?dist}
+Release: 3%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -62,6 +62,7 @@ Patch16: mariadb-basedir.patch
 Patch17: mariadb-warning.patch
 Patch99: mariadb-scl-env-check.patch
 
+BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
 BuildRequires: systemtap-sdt-devel
@@ -310,6 +311,8 @@ done
 %endif
 
 %install
+rm -rf $RPM_BUILD_ROOT
+
 make DESTDIR=$RPM_BUILD_ROOT install
 
 # List the installed tree for RPM package maintenance purposes.
@@ -482,6 +485,9 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/mariadb-%{version}/INFO_SRC
 rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/mariadb-%{version}/INSTALL-BINARY
 rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/mariadb-%{version}/README
 
+%clean
+rm -rf $RPM_BUILD_ROOT
+
 %pre server
 /usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
 /usr/sbin/useradd -M -N -g mysql -o -r -d /var/lib/mysql -s /bin/bash \
@@ -529,6 +535,7 @@ else
 fi
 
 %files
+%defattr(-,root,root)
 %doc README COPYING COPYING.LESSER README.mysql-license
 %doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
 %doc README.mysql-docs
@@ -571,6 +578,7 @@ fi
 %config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
 
 %files libs
+%defattr(-,root,root)
 %doc README COPYING COPYING.LESSER README.mysql-license
 %doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
 # although the default my.cnf contains only server settings, we put it in the
@@ -607,6 +615,7 @@ fi
 %{_datadir}/mysql/charsets
 
 %files server
+%defattr(-,root,root)
 %doc support-files/*.cnf
 
 %{_bindir}/myisamchk
@@ -700,9 +709,11 @@ fi
 %config(noreplace) %{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/logrotate.d/%{?scl_prefix}mysqld
  
 %files bench
+%defattr(-,root,root)
 %{_datadir}/sql-bench
 
 %files test
+%defattr(-,root,root)
 %{_bindir}/mysql_client_test
 %{_bindir}/my_safe_process
 %attr(-,mysql,mysql) %{_datadir}/mysql-test
@@ -710,6 +721,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Fri Mar 22 2013 Honza Horak <hhorak@redhat.com> 5.5.29-3
+- Add specfile pieces for RHEL-5
+
 * Thu Mar 21 2013 Honza Horak <hhorak@redhat.com> 5.5.29-2
 - Turn on testing during build
 
