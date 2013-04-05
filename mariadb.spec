@@ -2,8 +2,8 @@
 %{!?_unitdir:%global _unitdir /lib/systemd/system}
 
 Name: %{?scl_prefix}mariadb
-Version: 5.5.29
-Release: 3%{?dist}
+Version: 5.5.30
+Release: 1%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -56,10 +56,7 @@ Patch10: mariadb-file-contents.patch
 Patch11: mariadb-string-overflow.patch
 Patch12: mariadb-dh1024.patch
 Patch13: mariadb-man-plugin.patch
-Patch14: mariadb-buffer.patch
-Patch15: mariadb-sortbuffer.patch
-Patch16: mariadb-basedir.patch
-Patch17: mariadb-warning.patch
+Patch14: mariadb-basedir.patch
 Patch99: mariadb-scl-env-check.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
@@ -72,7 +69,7 @@ BuildRequires: time procps
 BuildRequires: perl(Socket), perl(Time::HiRes)
 BuildRequires: perl(Data::Dumper), perl(Test::More)
 
-Requires: real-%{name}-libs%{?_isa} = %{version}-%{release}
+Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Requires: grep, fileutils, bash
 
 %{?scl:Requires:%scl_runtime}
@@ -162,9 +159,6 @@ MariaDB is a community developed branch of MySQL.
 %patch12 -p1
 %patch13 -p1
 %patch14 -p1
-%patch15 -p1
-%patch16 -p1
-%patch17 -p1
 
 # path fixes in source for dsc - using sed instead of patching, 
 # because we would need various patches for various collections
@@ -721,6 +715,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Fri Apr  5 2013 Honza Horak <hhorak@redhat.com> 5.5.30-1
+- Update to 5.5.30
+
 * Fri Mar 22 2013 Honza Horak <hhorak@redhat.com> 5.5.29-3
 - Add specfile pieces for RHEL-5
 
