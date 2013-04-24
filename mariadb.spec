@@ -168,8 +168,8 @@ sed -i -e 's|/usr|%{_prefix}|' ./mysql-test/t/file_contents.test
 # path adding collection name into some scripts
 # patch is applied only if building into SCL
 # some values in patch are replaced by real value depending on collection name
-cp %{SOURCE11} mysqld.service
-cp %{SOURCE17} mysql.init
+cp -p %{SOURCE11} mysqld.service
+cp -p %{SOURCE17} mysql.init
 %if 0%{?scl:1}
 %global scl_sed_patches 1
 %if %scl_sed_patches
@@ -185,7 +185,7 @@ patch -p1 -b --suffix .scl-env-check<%{PATCH99}
 rm -f mysql-test/t/ssl_8k_key-master.opt
 
 # upstream has fallen down badly on symbol versioning, do it ourselves
-cp %{SOURCE8} libmysql/libmysql.version
+cp -p %{SOURCE8} libmysql/libmysql.version
 
 # generate a list of tests that fail, but are not disabled by upstream
 cat %{SOURCE14} > mysql-test/rh-skipped-tests.list
@@ -199,7 +199,7 @@ echo "main.gis-precise : rhbz#906367" >> mysql-test/rh-skipped-tests.list
 %endif
 
 # install mysql_plugin
-cp %{SOURCE16} man/
+cp -p %{SOURCE16} man/
 
 %build
 
@@ -263,7 +263,7 @@ make %{?_smp_mflags} VERBOSE=1
 # is expected by scripts
 for e in innobase xtradb ; do
   for f in pars0grm.c pars0grm.y pars0lex.l lexyy.c ; do
-    cp "storage/$e/pars/$f" "storage/$e/$f"
+    cp -p "storage/$e/pars/$f" "storage/$e/$f"
   done
 done
 
@@ -314,7 +314,7 @@ find $RPM_BUILD_ROOT -print | sed "s|^$RPM_BUILD_ROOT||" | sort > ROOTFILES
 case `uname -i` in
   i386 | x86_64 | ppc | ppc64 | ppc64p7 | s390 | s390x | sparc | sparc64 )
     mv $RPM_BUILD_ROOT%{_includedir}//mysql/my_config.h $RPM_BUILD_ROOT%{_includedir}//mysql/my_config_`uname -i`.h
-    install -m 644 %{SOURCE5} $RPM_BUILD_ROOT%{_includedir}/mysql/
+    install -p -m 644 %{SOURCE5} $RPM_BUILD_ROOT%{_includedir}/mysql/
     ;;
   *)
     ;;
@@ -326,19 +326,19 @@ esac
 # libmysqlclient_r anymore either.
 sed -e 's/-lprobes_mysql//' -e 's/-lmysqlclient_r/-lmysqlclient/' \
 	${RPM_BUILD_ROOT}%{_bindir}/mysql_config >mysql_config.tmp
-cp -f mysql_config.tmp ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
+cp -p -f mysql_config.tmp ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
 chmod 755 ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
 
 # install INFO_SRC, INFO_BIN into libdir (upstream thinks these are doc files,
 # but that's pretty wacko --- see also mariadb-file-contents.patch)
-install -m 644 Docs/INFO_SRC ${RPM_BUILD_ROOT}%{_libdir}/mysql/
-install -m 644 Docs/INFO_BIN ${RPM_BUILD_ROOT}%{_libdir}/mysql/
+install -p -m 644 Docs/INFO_SRC ${RPM_BUILD_ROOT}%{_libdir}/mysql/
+install -p -m 644 Docs/INFO_BIN ${RPM_BUILD_ROOT}%{_libdir}/mysql/
 
 mkdir -p $RPM_BUILD_ROOT%{?_scl_root}/var/log
 touch $RPM_BUILD_ROOT%{?_scl_root}/var/log/mysqld.log
 
 mkdir -p $RPM_BUILD_ROOT%{?_scl_root}/var/run/mysqld
-install -m 0755 -d $RPM_BUILD_ROOT%{?_scl_root}/var/lib/mysql
+install -p -m 0755 -d $RPM_BUILD_ROOT%{?_scl_root}/var/lib/mysql
 
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
 # fix path definitions in my.cnf file
@@ -346,7 +346,7 @@ sed    -e 's|datadir=/var/|datadir=%{?_scl_root}/var/|' \
        -e 's|log-error=/var/|log-error=%{?_scl_root}/var/|' \
        -e 's|!includedir /etc/|!includedir %{_sysconfdir}kk/|' \
        -e 's|pid-file=/var/|pid-file=%{?_scl_root}/var/|' >my.cnf <%{SOURCE3}
-install -m 0644 my.cnf $RPM_BUILD_ROOT%{_sysconfdir}/my.cnf
+install -p -m 0644 my.cnf $RPM_BUILD_ROOT%{_sysconfdir}/my.cnf
 
 # install systemd unit files and scripts for handling server startup
 # and fix path definitions in the scripts
@@ -354,24 +354,24 @@ mkdir -p ${RPM_BUILD_ROOT}%{_unitdir}
 sed -i -e 's|/usr/libexec|%{_libexecdir}|' \
        -e 's|/usr/bin/scl-service|%{_bindir}/scl-service|' \
        -e 's|/usr/bin/mysqld_safe --basedir=/usr|%{_bindir}/mysqld_safe --basedir=%{_prefix}|' mysqld.service
-install -m 644 mysqld.service ${RPM_BUILD_ROOT}%{_unitdir}/%{?scl_prefix}mysqld.service
-install -m 755 %{SOURCE18} ${RPM_BUILD_ROOT}%{_bindir}
+install -p -m 644 mysqld.service ${RPM_BUILD_ROOT}%{_unitdir}/%{?scl_prefix}mysqld.service
+install -p -m 755 %{SOURCE18} ${RPM_BUILD_ROOT}%{_bindir}
 
 sed    -e 's|/usr|%{_prefix}|' \
        -e 's|/var|%{?_scl_root}/var|' \
         -e 's|/etc|%{_sysconfdir}|' <%{SOURCE12} >mysqld-prepare-db-dir
-install -m 755 mysqld-prepare-db-dir ${RPM_BUILD_ROOT}%{_libexecdir}/
+install -p -m 755 mysqld-prepare-db-dir ${RPM_BUILD_ROOT}%{_libexecdir}/
 
 sed -e 's|/etc/my.cnf|%{_sysconfdir}/my.cnf|' \
        -e 's|/usr|%{_prefix}|' \
        -e 's|/var/lib/|%{?_scl_root}/var/lib/|' \
        -e 's|get_mysql_option mysqld socket "$datadir/mysql.sock"|get_mysql_option mysqld socket "/var/lib/mysql/mysql.sock"|' \
        <%{SOURCE13} >mysqld-wait-ready
-install -m 755 mysqld-wait-ready ${RPM_BUILD_ROOT}%{_libexecdir}/
+install -p -m 755 mysqld-wait-ready ${RPM_BUILD_ROOT}%{_libexecdir}/
 
 mkdir -p $RPM_BUILD_ROOT%{?scl:%_root_prefix}%{!?scl:%_prefix}/lib/tmpfiles.d
 sed -e 's|/var/run/mysqld|%{?_scl_root}/var/run/mysqld|' <%{SOURCE10} >%{?scl_prefix}mysql.conf
-install -m 0644 %{?scl_prefix}mysql.conf $RPM_BUILD_ROOT%{?scl:%_root_prefix}%{!?scl:%_prefix}/lib/tmpfiles.d/%{?scl_prefix}mysql.conf
+install -p -m 0644 %{?scl_prefix}mysql.conf $RPM_BUILD_ROOT%{?scl:%_root_prefix}%{!?scl:%_prefix}/lib/tmpfiles.d/%{?scl_prefix}mysql.conf
 
 mkdir -p $RPM_BUILD_ROOT%{?_scl_root}/var/lock/subsys/
 mkdir -p $RPM_BUILD_ROOT%{?_scl_root}/var/run/mysqld
@@ -392,7 +392,7 @@ sed -i -e 's|/etc/my.cnf|%{_sysconfdir}/my.cnf|' \
        -e 's|/var/lib/|%{?_scl_root}/var/lib/|' \
        -e 's|/var/log/|%{?_scl_root}/var/log/|' \
        -e 's|get_mysql_option mysqld socket "$datadir/mysql.sock"|get_mysql_option mysqld socket "/var/lib/mysql/mysql.sock"|' mysql.init
-install -m 0755 mysql.init $RPM_BUILD_ROOT%{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/rc.d/init.d/%{?scl_prefix}mysqld
+install -p -m 0755 mysql.init $RPM_BUILD_ROOT%{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/rc.d/init.d/%{?scl_prefix}mysqld
 
 # Fix funny permissions that cmake build scripts apply to config files
 chmod 644 ${RPM_BUILD_ROOT}%{_datadir}/mysql/config.*.ini
@@ -439,11 +439,11 @@ mv ${RPM_BUILD_ROOT}%{_datadir}/mysql/mysql-log-rotate $RPM_BUILD_ROOT%{?scl:%_r
 chmod 644 $RPM_BUILD_ROOT%{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/logrotate.d/%{?scl_prefix}mysqld
 
 # copy additional docs into build tree so %%doc will find them
-cp %{SOURCE6} README.mysql-docs
-cp %{SOURCE7} README.mysql-license
+cp -p %{SOURCE6} README.mysql-docs
+cp -p %{SOURCE7} README.mysql-license
 
 # install the list of skipped tests to be available for user runs
-install -m 0644 mysql-test/rh-skipped-tests.list ${RPM_BUILD_ROOT}%{_datadir}/mysql-test
+install -p -m 0644 mysql-test/rh-skipped-tests.list ${RPM_BUILD_ROOT}%{_datadir}/mysql-test
 
 # we do not provide devel and embeded sub-packages,
 # soremove files from that sub-packages
@@ -717,6 +717,7 @@ fi
 - Fix includedir path in my.cnf
 - Fix Environment variable name in the init script
 - All subpackages should require meta-runtime package
+- Preserve timestamps when using install or cp
 
 * Fri Apr  5 2013 Honza Horak <hhorak@redhat.com> 5.5.30-1
 - Update to 5.5.30
