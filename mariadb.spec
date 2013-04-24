@@ -2,7 +2,7 @@
 
 Name: %{?scl_prefix}mariadb
 Version: 5.5.30
-Release: 3%{?dist}
+Release: 4%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -45,7 +45,8 @@ Patch11: mariadb-string-overflow.patch
 Patch12: mariadb-dh1024.patch
 Patch13: mariadb-man-plugin.patch
 Patch14: mariadb-basedir.patch
-Patch99: mariadb-scl-env-check.patch
+Patch101: mariadb-scl-env-check.patch
+Patch102: mysql-daemonstatus.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: perl, readline-devel, openssl-devel
@@ -153,11 +154,11 @@ MariaDB is a community developed branch of MySQL.
 
 # path fixes in source for dsc - using sed instead of patching, 
 # because we would need various patches for various collections
-sed -i -e 's|/etc/|%{_sysconfdir}/|' mysys/default.c
-sed -i -e 's|/etc/my|%{_sysconfdir}/my|' scripts/mysqld_multi.sh
-sed -i -e 's|/etc/|%{_sysconfdir}/|' scripts/mysqlaccess.sh
-sed -i -e 's|/usr/|%{_prefix}/|' ./client/mysql_plugin.c
-sed -i -e 's|/usr|%{_prefix}|' ./mysql-test/t/file_contents.test
+sed -i -e 's|/etc/|%{_sysconfdir}/|g' mysys/default.c
+sed -i -e 's|/etc/my|%{_sysconfdir}/my|g' scripts/mysqld_multi.sh
+sed -i -e 's|/etc/|%{_sysconfdir}/|g' scripts/mysqlaccess.sh
+sed -i -e 's|/usr/|%{_prefix}/|g' ./client/mysql_plugin.c
+sed -i -e 's|/usr|%{_prefix}|g' ./mysql-test/t/file_contents.test
 
 # path adding collection name into some scripts
 # patch is applied only if building into SCL
@@ -166,11 +167,14 @@ cp -p %{SOURCE17} mysql.init
 %if 0%{?scl:1}
 %global scl_sed_patches 1
 %if %scl_sed_patches
-cat %{PATCH99} | sed -e "s/__SCL_NAME__/%{?scl}/" \
-       -e "s|__SCL_SCRIPTS__|%{?_scl_scripts}|" \
+cat %{PATCH101} | sed -e "s/__SCL_NAME__/%{?scl}/g" \
+       -e "s|__SCL_SCRIPTS__|%{?_scl_scripts}|g" \
        | patch -p1 -b --suffix .scl-env-check
+cat %{PATCH102} | sed -e "s/__SCL_NAME__/%{?scl}/g" \
+                | patch -p1 -b --suffix .daemonstatus
 %else
-patch -p1 -b --suffix .scl-env-check<%{PATCH99}
+patch -p1 -b --suffix .scl-env-check<%{PATCH101}
+patch -p1 -b --suffix .daemonstatus<%{PATCH102}
 %endif
 %endif
 
@@ -335,10 +339,10 @@ install -p -m 0755 -d $RPM_BUILD_ROOT%{?_scl_root}/var/lib/mysql
 
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
 # fix path definitions in my.cnf file
-sed    -e 's|datadir=/var/|datadir=%{?_scl_root}/var/|' \
-       -e 's|log-error=/var/log/mysqld.log|log-error=/var/log/%{?scl_prefix}mysqld.log|' \
-       -e 's|!includedir /etc/|!includedir %{_sysconfdir}/|' \
-       -e 's|pid-file=/var/|pid-file=%{?_scl_root}/var/|' >my.cnf <%{SOURCE3}
+sed    -e 's|datadir=/var/|datadir=%{?_scl_root}/var/|g' \
+       -e 's|log-error=/var/log/mysqld.log|log-error=/var/log/%{?scl_prefix}mysqld.log|g' \
+       -e 's|!includedir /etc/|!includedir %{_sysconfdir}/|g' \
+       -e 's|pid-file=/var/|pid-file=%{?_scl_root}/var/|g' >my.cnf <%{SOURCE3}
 install -p -m 0644 my.cnf $RPM_BUILD_ROOT%{_sysconfdir}/my.cnf
 
 mkdir -p $RPM_BUILD_ROOT%{?_scl_root}/var/lock/subsys/
@@ -351,15 +355,15 @@ install -m 0755 -d $RPM_BUILD_ROOT/var/lib/mysql
 %endif
 
 mkdir -p $RPM_BUILD_ROOT%{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/rc.d/init.d
-sed -i -e 's|/etc/my.cnf|%{_sysconfdir}/my.cnf|' \
-       -e 's|/etc/sysconfig/mysqld|%{_sysconfdir}/sysconfig/mysqld|' \
-       -e 's|/etc/sysconfig/\$prog|%{_sysconfdir}/sysconfig/\$prog|' \
-       -e 's|/var/run/mysqld/|%{?_scl_root}/var/run/mysqld/|' \
-       -e 's|/usr|%{_prefix}|' \
-       -e 's|/var/lock/|%{?_scl_root}/var/lock/|' \
-       -e 's|/var/lib/|%{?_scl_root}/var/lib/|' \
-       -e 's|/var/log/mysqld.log|/var/log/%{?scl_prefix}mysqld.log|' \
-       -e 's|get_mysql_option mysqld socket "$datadir/mysql.sock"|get_mysql_option mysqld socket "/var/lib/mysql/mysql.sock"|' mysql.init
+sed -i -e 's|/etc/my.cnf|%{_sysconfdir}/my.cnf|g' \
+       -e 's|/etc/sysconfig/mysqld|%{_sysconfdir}/sysconfig/mysqld|g' \
+       -e 's|/etc/sysconfig/\$prog|%{_sysconfdir}/sysconfig/\$prog|g' \
+       -e 's|/var/run/mysqld/|%{?_scl_root}/var/run/mysqld/|g' \
+       -e 's|/usr|%{_prefix}|g' \
+       -e 's|/var/lock/|%{?_scl_root}/var/lock/|g' \
+       -e 's|/var/lib/|%{?_scl_root}/var/lib/|g' \
+       -e 's|/var/log/mysqld.log|/var/log/%{?scl_prefix}mysqld.log|g' \
+       -e 's|get_mysql_option mysqld socket "$datadir/mysql.sock"|get_mysql_option mysqld socket "/var/lib/mysql/mysql.sock"|g' mysql.init
 install -p -m 0755 mysql.init $RPM_BUILD_ROOT%{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/rc.d/init.d/%{?scl_prefix}mysqld
 
 # Fix funny permissions that cmake build scripts apply to config files
@@ -653,8 +657,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
-* Wed Apr 24 2013 Honza Horak <hhorak@redhat.com> 5.5.30-3
+* Wed Apr 24 2013 Honza Horak <hhorak@redhat.com> 5.5.30-4
 - Removing stuff needed for RHEL-7
+- Fix checking daemon process status
 
 * Wed Apr 24 2013 Honza Horak <hhorak@redhat.com> 5.5.30-2
 - Fix includedir path in my.cnf
