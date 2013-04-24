@@ -3,7 +3,7 @@
 
 Name: %{?scl_prefix}mariadb
 Version: 5.5.30
-Release: 1%{?dist}
+Release: 2%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -13,12 +13,6 @@ URL: http://mariadb.org
 # Some innobase code from Percona and Google is under BSD license
 # Some code related to test-suite is under LGPLv2
 License: GPLv2 with exceptions and LGPLv2 and BSD
-
-# The evr of mysql we want to obsolete
-%global obsoleted_mysql_evr 5.6-0
-
-# Should mariadb obsolete mysql?
-%{!?obsoletemysql:%global obsoletemysql 1}
 
 # Regression tests take a long time, you can skip 'em with this
 %{!?runselftest:%global runselftest 1}
@@ -347,6 +341,7 @@ mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
 # fix path definitions in my.cnf file
 sed    -e 's|datadir=/var/|datadir=%{?_scl_root}/var/|' \
        -e 's|log-error=/var/|log-error=%{?_scl_root}/var/|' \
+       -e 's|!includedir /etc/|!includedir %{_sysconfdir}kk/|' \
        -e 's|pid-file=/var/|pid-file=%{?_scl_root}/var/|' >my.cnf <%{SOURCE3}
 install -m 0644 my.cnf $RPM_BUILD_ROOT%{_sysconfdir}/my.cnf
 
@@ -715,6 +710,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Wed Apr 24 2013 Honza Horak <hhorak@redhat.com> 5.5.30-2
+- Fix includedir path in my.cnf
+- Fix Environment variable name in the init script
+
 * Fri Apr  5 2013 Honza Horak <hhorak@redhat.com> 5.5.30-1
 - Update to 5.5.30
 

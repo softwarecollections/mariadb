@@ -10,14 +10,14 @@ diff -up mysql-5.5.28/mysqld.service.scl-env-check mysql-5.5.28/mysqld.service
 +EnvironmentFile=__SCL_SCRIPTS__/service-environment
 +
 +# We want to start server only inside "scl enable" invocation
-+ExecStartPre=/usr/bin/scl-service $MYSQL55_MYSQLD_SCLS_ENABLED /usr/bin/scl_enabled __SCL_NAME__
-+ExecStartPre=/usr/bin/scl-service $MYSQL55_MYSQLD_SCLS_ENABLED /usr/libexec/mysqld-prepare-db-dir %n
++ExecStartPre=/usr/bin/scl-service $MARIADB55_MYSQLD_SCLS_ENABLED /usr/bin/scl_enabled __SCL_NAME__
++ExecStartPre=/usr/bin/scl-service $MARIADB55_MYSQLD_SCLS_ENABLED /usr/libexec/mysqld-prepare-db-dir %n
  # Note: we set --basedir to prevent probes that might trigger SELinux alarms,
  # per bug #547485
 -ExecStart=/usr/bin/mysqld_safe --basedir=/usr
 -ExecStartPost=/usr/libexec/mysqld-wait-ready $MAINPID
-+ExecStart=/usr/bin/scl-service $MYSQL55_MYSQLD_SCLS_ENABLED /usr/bin/mysqld_safe --basedir=/usr
-+ExecStartPost=/usr/bin/scl-service $MYSQL55_MYSQLD_SCLS_ENABLED /usr/libexec/mysqld-wait-ready $MAINPID
++ExecStart=/usr/bin/scl-service $MARIADB55_MYSQLD_SCLS_ENABLED /usr/bin/mysqld_safe --basedir=/usr
++ExecStartPost=/usr/bin/scl-service $MARIADB55_MYSQLD_SCLS_ENABLED /usr/libexec/mysqld-wait-ready $MAINPID
  
  # Give a reasonable amount of time for the server to start up/shut down
  TimeoutSec=300
@@ -33,7 +33,7 @@ diff -up mysql-5.5.28/mysql.init.scl-env-check mysql-5.5.28/mysql.init
 +# Since X_SCLS is cleared as well, we lose information about other
 +# collections enabled.
 +. __SCL_SCRIPTS__/service-environment
-+for sclname in $MYSQL55_MYSQLD_SCLS_ENABLED ; do
++for sclname in $MARIADB55_MYSQLD_SCLS_ENABLED ; do
 +    . /opt/rh/$sclname/enable
 +    export X_SCLS="$X_SCLS $sclname"
 +done
