@@ -1,9 +1,8 @@
 %{?scl:%scl_package mariadb}
-%{!?_unitdir:%global _unitdir /lib/systemd/system}
 
 Name: %{?scl_prefix}mariadb
 Version: 5.5.30
-Release: 2%{?dist}
+Release: 3%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -23,17 +22,12 @@ Source5: my_config.h
 Source6: README.mysql-docs
 Source7: README.mysql-license
 Source8: libmysql.version
-Source10: mariadb.tmpfiles.d
-Source11: mysqld.service
-Source12: mysqld-prepare-db-dir
-Source13: mysqld-wait-ready
 Source14: rh-skipped-tests-base.list
 Source15: rh-skipped-tests-arm.list
 # mysql_plugin is missing in mariadb tar ball
 Source16: mysql_plugin.1
 # Working around perl dependency checking bug in rpm FTTB. Remove later.
 Source17: mysql.init
-Source18: scl-service
 Source999: filter-requires-mysql.sh
 
 # Comments for these patches are in the patch files.
@@ -168,7 +162,6 @@ sed -i -e 's|/usr|%{_prefix}|' ./mysql-test/t/file_contents.test
 # path adding collection name into some scripts
 # patch is applied only if building into SCL
 # some values in patch are replaced by real value depending on collection name
-cp -p %{SOURCE11} mysqld.service
 cp -p %{SOURCE17} mysql.init
 %if 0%{?scl:1}
 %global scl_sed_patches 1
@@ -348,31 +341,6 @@ sed    -e 's|datadir=/var/|datadir=%{?_scl_root}/var/|' \
        -e 's|pid-file=/var/|pid-file=%{?_scl_root}/var/|' >my.cnf <%{SOURCE3}
 install -p -m 0644 my.cnf $RPM_BUILD_ROOT%{_sysconfdir}/my.cnf
 
-# install systemd unit files and scripts for handling server startup
-# and fix path definitions in the scripts
-mkdir -p ${RPM_BUILD_ROOT}%{_unitdir}
-sed -i -e 's|/usr/libexec|%{_libexecdir}|' \
-       -e 's|/usr/bin/scl-service|%{_bindir}/scl-service|' \
-       -e 's|/usr/bin/mysqld_safe --basedir=/usr|%{_bindir}/mysqld_safe --basedir=%{_prefix}|' mysqld.service
-install -p -m 644 mysqld.service ${RPM_BUILD_ROOT}%{_unitdir}/%{?scl_prefix}mysqld.service
-install -p -m 755 %{SOURCE18} ${RPM_BUILD_ROOT}%{_bindir}
-
-sed    -e 's|/usr|%{_prefix}|' \
-       -e 's|/var|%{?_scl_root}/var|' \
-        -e 's|/etc|%{_sysconfdir}|' <%{SOURCE12} >mysqld-prepare-db-dir
-install -p -m 755 mysqld-prepare-db-dir ${RPM_BUILD_ROOT}%{_libexecdir}/
-
-sed -e 's|/etc/my.cnf|%{_sysconfdir}/my.cnf|' \
-       -e 's|/usr|%{_prefix}|' \
-       -e 's|/var/lib/|%{?_scl_root}/var/lib/|' \
-       -e 's|get_mysql_option mysqld socket "$datadir/mysql.sock"|get_mysql_option mysqld socket "/var/lib/mysql/mysql.sock"|' \
-       <%{SOURCE13} >mysqld-wait-ready
-install -p -m 755 mysqld-wait-ready ${RPM_BUILD_ROOT}%{_libexecdir}/
-
-mkdir -p $RPM_BUILD_ROOT%{?scl:%_root_prefix}%{!?scl:%_prefix}/lib/tmpfiles.d
-sed -e 's|/var/run/mysqld|%{?_scl_root}/var/run/mysqld|' <%{SOURCE10} >%{?scl_prefix}mysql.conf
-install -p -m 0644 %{?scl_prefix}mysql.conf $RPM_BUILD_ROOT%{?scl:%_root_prefix}%{!?scl:%_prefix}/lib/tmpfiles.d/%{?scl_prefix}mysql.conf
-
 mkdir -p $RPM_BUILD_ROOT%{?_scl_root}/var/lock/subsys/
 mkdir -p $RPM_BUILD_ROOT%{?_scl_root}/var/run/mysqld
 install -m 0755 -d $RPM_BUILD_ROOT%{?_scl_root}/var/lib/mysql
@@ -486,44 +454,21 @@ rm -rf $RPM_BUILD_ROOT
 	-c "MariaDB Server" -u 27 mysql >/dev/null 2>&1 || :
 
 %post server
-if [ -e /bin/systemctl ] ; then
-# This part is run in RHEL-7 and newer
-# We don't want old SysVinit script if we use systemd
-rm -f %{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/rc.d/init.d/%{?scl_prefix}mysqld
 if [ $1 = 1 ]; then
-    # Initial installation
-    /bin/systemctl daemon-reload >/dev/null 2>&1 || :
-fi
-else
-# This part is run in RHEL-6 and older
-# We don't want new systemd unit file if we don't use systemd
-rm -f %{_unitdir}/%{?scl_prefix}mysqld.service
-/sbin/chkconfig --add %{?scl_prefix}mysqld
+    /sbin/chkconfig --add %{?scl_prefix}mysqld
 fi
 /bin/chmod 0755 %{?_scl_root}/var/lib/mysql
 /bin/touch /var/log/%{?scl_prefix}mysqld.log
 
 %preun server
-if [ -e /bin/systemctl ] ; then
 if [ $1 = 0 ]; then
-    # Package removal, not upgrade
-    /bin/systemctl --no-reload disable %{?scl_prefix}mysqld.service >/dev/null 2>&1 || :
-    /bin/systemctl stop %{?scl_prefix}mysqld.service >/dev/null 2>&1 || :
-fi
-else
-/sbin/service %{?scl_prefix}mysqld stop >/dev/null 2>&1
-/sbin/chkconfig --del %{?scl_prefix}mysqld
+    /sbin/service %{?scl_prefix}mysqld stop >/dev/null 2>&1
+    /sbin/chkconfig --del %{?scl_prefix}mysqld
 fi
 
 %postun server
-if [ -e /bin/systemctl ] ; then
-/bin/systemctl daemon-reload >/dev/null 2>&1 || :
 if [ $1 -ge 1 ]; then
-    # Package upgrade, not uninstall
-    /bin/systemctl try-restart %{?scl_prefix}mysqld.service >/dev/null 2>&1 || :
-fi
-else
-/sbin/service %{?scl_prefix}mysqld condrestart >/dev/null 2>&1 || :
+    /sbin/service %{?scl_prefix}mysqld condrestart >/dev/null 2>&1 || :
 fi
 
 %files
@@ -685,13 +630,8 @@ fi
 %{_datadir}/mysql/my-*.cnf
 %{_datadir}/mysql/config.*.ini
 
-%{_unitdir}/%{?scl_prefix}mysqld.service
 %{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/rc.d/init.d/%{?scl_prefix}mysqld
-%{_libexecdir}/mysqld-prepare-db-dir
-%{_libexecdir}/mysqld-wait-ready
-%{_bindir}/scl-service
 
-%{?scl:%_root_prefix}%{!?scl:%_prefix}/lib/tmpfiles.d/%{?scl_prefix}mysql.conf
 %attr(0755,mysql,mysql) %dir %{?_scl_root}/var/run/mysqld
 %attr(0755,mysql,mysql) %dir %{?_scl_root}/var/lib/mysql
 %if 0%{?scl:1}
@@ -713,6 +653,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Wed Apr 24 2013 Honza Horak <hhorak@redhat.com> 5.5.30-3
+- Removing stuff needed for RHEL-7
+
 * Wed Apr 24 2013 Honza Horak <hhorak@redhat.com> 5.5.30-2
 - Fix includedir path in my.cnf
 - Fix Environment variable name in the init script
