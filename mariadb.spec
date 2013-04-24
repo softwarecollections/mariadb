@@ -334,8 +334,8 @@ chmod 755 ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
 install -p -m 644 Docs/INFO_SRC ${RPM_BUILD_ROOT}%{_libdir}/mysql/
 install -p -m 644 Docs/INFO_BIN ${RPM_BUILD_ROOT}%{_libdir}/mysql/
 
-mkdir -p $RPM_BUILD_ROOT%{?_scl_root}/var/log
-touch $RPM_BUILD_ROOT%{?_scl_root}/var/log/mysqld.log
+mkdir -p $RPM_BUILD_ROOT/var/log
+touch $RPM_BUILD_ROOT/var/log/%{?scl_prefix}mysqld.log
 
 mkdir -p $RPM_BUILD_ROOT%{?_scl_root}/var/run/mysqld
 install -p -m 0755 -d $RPM_BUILD_ROOT%{?_scl_root}/var/lib/mysql
@@ -343,8 +343,8 @@ install -p -m 0755 -d $RPM_BUILD_ROOT%{?_scl_root}/var/lib/mysql
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
 # fix path definitions in my.cnf file
 sed    -e 's|datadir=/var/|datadir=%{?_scl_root}/var/|' \
-       -e 's|log-error=/var/|log-error=%{?_scl_root}/var/|' \
-       -e 's|!includedir /etc/|!includedir %{_sysconfdir}kk/|' \
+       -e 's|log-error=/var/log/mysqld.log|log-error=/var/log/%{?scl_prefix}mysqld.log|' \
+       -e 's|!includedir /etc/|!includedir %{_sysconfdir}/|' \
        -e 's|pid-file=/var/|pid-file=%{?_scl_root}/var/|' >my.cnf <%{SOURCE3}
 install -p -m 0644 my.cnf $RPM_BUILD_ROOT%{_sysconfdir}/my.cnf
 
@@ -390,7 +390,7 @@ sed -i -e 's|/etc/my.cnf|%{_sysconfdir}/my.cnf|' \
        -e 's|/usr|%{_prefix}|' \
        -e 's|/var/lock/|%{?_scl_root}/var/lock/|' \
        -e 's|/var/lib/|%{?_scl_root}/var/lib/|' \
-       -e 's|/var/log/|%{?_scl_root}/var/log/|' \
+       -e 's|/var/log/mysqld.log|/var/log/%{?scl_prefix}mysqld.log|' \
        -e 's|get_mysql_option mysqld socket "$datadir/mysql.sock"|get_mysql_option mysqld socket "/var/lib/mysql/mysql.sock"|' mysql.init
 install -p -m 0755 mysql.init $RPM_BUILD_ROOT%{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/rc.d/init.d/%{?scl_prefix}mysqld
 
@@ -501,7 +501,7 @@ rm -f %{_unitdir}/%{?scl_prefix}mysqld.service
 /sbin/chkconfig --add %{?scl_prefix}mysqld
 fi
 /bin/chmod 0755 %{?_scl_root}/var/lib/mysql
-/bin/touch %{?_scl_root}/var/log/mysqld.log
+/bin/touch /var/log/%{?scl_prefix}mysqld.log
 
 %preun server
 if [ -e /bin/systemctl ] ; then
@@ -697,7 +697,7 @@ fi
 %if 0%{?scl:1}
 %attr(0755,mysql,mysql) %dir /var/lib/mysql
 %endif
-%attr(0640,mysql,mysql) %config(noreplace) %verify(not md5 size mtime) %{?_scl_root}/var/log/mysqld.log
+%attr(0640,mysql,mysql) %config(noreplace) %verify(not md5 size mtime) /var/log/%{?scl_prefix}mysqld.log
 %config(noreplace) %{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/logrotate.d/%{?scl_prefix}mysqld
  
 %files bench
@@ -718,6 +718,7 @@ fi
 - Fix Environment variable name in the init script
 - All subpackages should require meta-runtime package
 - Preserve timestamps when using install or cp
+- Use log file prefixed by scl name and located in /var/log
 
 * Fri Apr  5 2013 Honza Horak <hhorak@redhat.com> 5.5.30-1
 - Update to 5.5.30
