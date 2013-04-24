@@ -65,7 +65,6 @@ BuildRequires: perl(Data::Dumper), perl(Test::More)
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Requires: grep, fileutils, bash
-
 %{?scl:Requires:%scl_runtime}
 
 # When rpm 4.9 is universal, this could be cleaned up:
@@ -87,6 +86,7 @@ contains the standard MariaDB/MySQL client programs and generic MySQL files.
 
 Summary: The shared libraries required for MariaDB/MySQL clients
 Group: Applications/Databases
+%{?scl:Requires:%scl_runtime}
 
 %description libs
 The mariadb-libs package provides the essential shared libraries for any 
@@ -102,6 +102,7 @@ Requires: %{name}%{?_isa} = %{version}-%{release}
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Requires: sh-utils
 Requires(pre): /usr/sbin/useradd
+%{?scl:Requires:%scl_runtime}
 
 %description server
 MariaDB is a multi-user, multi-threaded SQL database server. It is a
@@ -115,6 +116,7 @@ MariaDB is a community developed branch of MySQL.
 Summary: MariaDB benchmark scripts and data
 Group: Applications/Databases
 Requires: %{name}%{?_isa} = %{version}-%{release}
+%{?scl:Requires:%scl_runtime}
 
 %description bench
 MariaDB is a multi-user, multi-threaded SQL database server. This
@@ -129,6 +131,7 @@ Group: Applications/Databases
 Requires: %{name}%{?_isa} = %{version}-%{release}
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Requires: %{name}-server%{?_isa} = %{version}-%{release}
+%{?scl:Requires:%scl_runtime}
 
 %description test
 MariaDB is a multi-user, multi-threaded SQL database server. This
@@ -713,6 +716,7 @@ fi
 * Wed Apr 24 2013 Honza Horak <hhorak@redhat.com> 5.5.30-2
 - Fix includedir path in my.cnf
 - Fix Environment variable name in the init script
+- All subpackages should require meta-runtime package
 
 * Fri Apr  5 2013 Honza Horak <hhorak@redhat.com> 5.5.30-1
 - Update to 5.5.30
