@@ -2,7 +2,7 @@
 
 Name: %{?scl_prefix}mariadb
 Version: 5.5.30
-Release: 4%{?dist}
+Release: 5%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -334,9 +334,6 @@ install -p -m 644 Docs/INFO_BIN ${RPM_BUILD_ROOT}%{_libdir}/mysql/
 mkdir -p $RPM_BUILD_ROOT/var/log
 touch $RPM_BUILD_ROOT/var/log/%{?scl_prefix}mysqld.log
 
-mkdir -p $RPM_BUILD_ROOT%{?_scl_root}/var/run/mysqld
-install -p -m 0755 -d $RPM_BUILD_ROOT%{?_scl_root}/var/lib/mysql
-
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
 # fix path definitions in my.cnf file
 sed    -e 's|datadir=/var/|datadir=%{?_scl_root}/var/|g' \
@@ -657,6 +654,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Fri Apr 26 2013 Honza Horak <hhorak@redhat.com> 5.5.30-5
+- Remove duplicite directory creation
+
 * Wed Apr 24 2013 Honza Horak <hhorak@redhat.com> 5.5.30-4
 - Removing stuff needed for RHEL-7
 - Fix checking daemon process status
