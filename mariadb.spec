@@ -676,6 +676,7 @@ fi
   Resolves: #958098
 - Include mysqlhotcopy utility and -devel sub-package for building
   daemon plugins
+- Use correct service name in the init script
 
 * Fri Apr 26 2013 Honza Horak <hhorak@redhat.com> 5.5.30-5
 - Remove duplicite directory creation
