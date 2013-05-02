@@ -2,7 +2,7 @@
 
 Name: %{?scl_prefix}mariadb
 Version: 5.5.30
-Release: 5%{?dist}
+Release: 6%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -654,6 +654,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Thu May  2 2013 Honza Horak <hhorak@redhat.com> 5.5.30-6
+- Fix reporting of service starting
+  Resolves: #958098
+
 * Fri Apr 26 2013 Honza Horak <hhorak@redhat.com> 5.5.30-5
 - Remove duplicite directory creation
 
