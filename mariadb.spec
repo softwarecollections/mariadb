@@ -46,7 +46,7 @@ Patch12: mariadb-dh1024.patch
 Patch13: mariadb-man-plugin.patch
 Patch14: mariadb-basedir.patch
 Patch101: mariadb-scl-env-check.patch
-Patch102: mysql-daemonstatus.patch
+Patch102: mariadb-daemonstatus.patch
 
 BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: perl, readline-devel, openssl-devel
