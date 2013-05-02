@@ -97,6 +97,8 @@ Requires: %{name}%{?_isa} = %{version}-%{release}
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Requires: sh-utils
 Requires(pre): /usr/sbin/useradd
+# mysqlhotcopy needs DBI/DBD support
+Requires: perl-DBI, perl-DBD-MySQL
 %{?scl:Requires:%scl_runtime}
 
 %description server
@@ -105,6 +107,19 @@ client/server implementation consisting of a server daemon (mysqld)
 and many different client programs and libraries. This package contains
 the MariaDB server and some accompanying files and directories.
 MariaDB is a community developed branch of MySQL.
+
+%package devel
+
+Summary: Files for development of MariaDB plugins
+Group: Applications/Databases
+Requires: %{name}%{?_isa} = %{version}-%{release}
+Requires: %{name}-libs%{?_isa} = %{version}-%{release}
+Requires: openssl-devel%{?_isa}
+
+%description devel
+MariaDB is a multi-user, multi-threaded SQL database server. This
+package contains the libraries and header files that are needed for
+developing MariaDB plugins.
 
 %package bench
 
@@ -390,8 +405,6 @@ ln -s ../../../../../bin/my_safe_process ${RPM_BUILD_ROOT}%{_datadir}/mysql-test
 
 # should move this to /etc/ ?
 rm -f ${RPM_BUILD_ROOT}%{_bindir}/mysql_embedded
-# Remove cyclic dependency by removing mysqlhotcopy
-rm -f ${RPM_BUILD_ROOT}%{_bindir}/mysqlhotcopy
 rm -f ${RPM_BUILD_ROOT}%{_libdir}/mysql/*.a
 rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/binary-configure
 rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/magic
@@ -400,7 +413,6 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/mysql.server
 rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/mysqld_multi.server
 rm -f ${RPM_BUILD_ROOT}%{_mandir}/man1/mysql-stress-test.pl.1*
 rm -f ${RPM_BUILD_ROOT}%{_mandir}/man1/mysql-test-run.pl.1*
-rm -f ${RPM_BUILD_ROOT}%{_mandir}/man1/mysqlhotcopy.1*
 
 # put logrotate script where it needs to be
 mkdir -p $RPM_BUILD_ROOT%{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/logrotate.d
@@ -423,8 +435,6 @@ rm -f ${RPM_BUILD_ROOT}%{_bindir}/mysqltest_embedded
 rm -f ${RPM_BUILD_ROOT}%{_mandir}/man1/mysql_client_test_embedded.1*
 rm -f ${RPM_BUILD_ROOT}%{_mandir}/man1/mysqltest_embedded.1*
 
-rm -rf ${RPM_BUILD_ROOT}%{_includedir}/mysql
-rm -f ${RPM_BUILD_ROOT}%{_datadir}/aclocal/mysql.m4
 unlink ${RPM_BUILD_ROOT}%{_libdir}/mysql/libmysqlclient.so
 unlink ${RPM_BUILD_ROOT}%{_libdir}/mysql/libmysqlclient_r.so
 rm -f ${RPM_BUILD_ROOT}%{_libdir}/mysql/libmysqlclient.so.*
@@ -573,6 +583,7 @@ fi
 %{_bindir}/mysqldumpslow
 %{_bindir}/mysqld_multi
 %{_bindir}/mysqld_safe
+%{_bindir}/mysqlhotcopy
 %{_bindir}/mysqltest
 %{_bindir}/innochecksum
 %{_bindir}/perror
@@ -610,6 +621,7 @@ fi
 %{_mandir}/man1/mysqlcheck.1*
 %{_mandir}/man1/mysqld_multi.1*
 %{_mandir}/man1/mysqld_safe.1*
+%{_mandir}/man1/mysqlhotcopy.1*
 %{_mandir}/man1/mysqlimport.1*
 %{_mandir}/man1/mysqlman.1*
 %{_mandir}/man1/mysql_setpermission.1*
@@ -640,6 +652,11 @@ fi
 %endif
 %attr(0640,mysql,mysql) %config(noreplace) %verify(not md5 size mtime) /var/log/%{?scl_prefix}mysqld.log
 %config(noreplace) %{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/logrotate.d/%{?scl_prefix}mysqld
+
+%files devel
+%defattr(-,root,root)
+%{_includedir}/mysql
+%{_datadir}/aclocal/mysql.m4
  
 %files bench
 %defattr(-,root,root)
@@ -657,6 +674,8 @@ fi
 * Thu May  2 2013 Honza Horak <hhorak@redhat.com> 5.5.30-6
 - Fix reporting of service starting
   Resolves: #958098
+- Include mysqlhotcopy utility and -devel sub-package for building
+  daemon plugins
 
 * Fri Apr 26 2013 Honza Horak <hhorak@redhat.com> 5.5.30-5
 - Remove duplicite directory creation
