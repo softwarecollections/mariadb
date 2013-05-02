@@ -174,6 +174,7 @@ sed -i -e 's|/etc/my|%{_sysconfdir}/my|g' scripts/mysqld_multi.sh
 sed -i -e 's|/etc/|%{_sysconfdir}/|g' scripts/mysqlaccess.sh
 sed -i -e 's|/usr/|%{_prefix}/|g' ./client/mysql_plugin.c
 sed -i -e 's|/usr|%{_prefix}|g' ./mysql-test/t/file_contents.test
+sed -i -e 's|/var/log/mysql|/var/log/%{?scl_prefix}mysql|g' support-files/mysql-log-rotate.sh
 
 # path adding collection name into some scripts
 # patch is applied only if building into SCL
@@ -677,6 +678,7 @@ fi
 - Include mysqlhotcopy utility and -devel sub-package for building
   daemon plugins
 - Use correct service name in the init script
+- Use correct log file path in the logrotate script
 
 * Fri Apr 26 2013 Honza Horak <hhorak@redhat.com> 5.5.30-5
 - Remove duplicite directory creation
