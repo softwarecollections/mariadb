@@ -2,7 +2,7 @@
 
 Name: %{?scl_prefix}mariadb
 Version: 5.5.30
-Release: 6%{?dist}
+Release: 7%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -672,6 +672,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Mon May  6 2013 Honza Horak <hhorak@redhat.com> 5.5.30-7
+- Don't try to start daemon if socket file is used already
+
 * Thu May  2 2013 Honza Horak <hhorak@redhat.com> 5.5.30-6
 - Fix reporting of service starting
   Resolves: #958098
