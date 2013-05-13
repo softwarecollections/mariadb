@@ -2,7 +2,7 @@
 
 Name: %{?scl_prefix}mariadb
 Version: 5.5.30
-Release: 7%{?dist}
+Release: 8%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -97,6 +97,7 @@ Requires: %{name}%{?_isa} = %{version}-%{release}
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Requires: sh-utils
 Requires(pre): /usr/sbin/useradd
+Requires(post): policycoreutils
 # mysqlhotcopy needs DBI/DBD support
 Requires: perl-DBI, perl-DBD-MySQL
 %{?scl:Requires:%scl_runtime}
@@ -466,6 +467,7 @@ rm -rf $RPM_BUILD_ROOT
 	-c "MariaDB Server" -u 27 mysql >/dev/null 2>&1 || :
 
 %post server
+restorecon -R %{_scl_root} >/dev/null 2>&1 || :
 if [ $1 = 1 ]; then
     /sbin/chkconfig --add %{?scl_prefix}mysqld
 fi
@@ -672,6 +674,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Mon May 13 2013 Honza Horak <hhorak@redhat.com> 5.5.30-8
+- Run restorecon in %%post section of -server
+  Resolves: #962392
+
 * Mon May  6 2013 Honza Horak <hhorak@redhat.com> 5.5.30-7
 - Don't try to start daemon if socket file is used already
 
