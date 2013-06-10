@@ -56,7 +56,7 @@ BuildRequires: systemtap-sdt-devel
 BuildRequires: time procps
 # perl modules needed to run regression tests
 BuildRequires: perl(Socket), perl(Time::HiRes)
-BuildRequires: perl(Data::Dumper), perl(Test::More)
+BuildRequires: perl(Data::Dumper), perl(Test::More), perl(Env)
 
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Requires: grep, fileutils, bash
@@ -142,6 +142,8 @@ Group: Applications/Databases
 Requires: %{name}%{?_isa} = %{version}-%{release}
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Requires: %{name}-server%{?_isa} = %{version}-%{release}
+BuildRequires: perl(Socket), perl(Time::HiRes)
+BuildRequires: perl(Data::Dumper), perl(Test::More), perl(Env)
 %{?scl:Requires:%scl_runtime}
 
 %description test
