@@ -28,6 +28,8 @@ Source15: rh-skipped-tests-arm.list
 Source16: mysql_plugin.1
 # Working around perl dependency checking bug in rpm FTTB. Remove later.
 Source17: mysql.init
+# We need to document how depended packages should be biult
+Source18: README.mariadb-devel
 Source999: filter-requires-mysql.sh
 
 # Comments for these patches are in the patch files.
@@ -664,6 +666,7 @@ fi
 
 %files devel
 %defattr(-,root,root)
+%doc README.mariadb-devel
 %{_includedir}/mysql
 %{_datadir}/aclocal/mysql.m4
  
@@ -686,6 +689,8 @@ fi
   Resolves: #966951
 - Restore SELinux context of log file
   Resolves: #971380
+- Add README.mariadb-devel to document how -devel package should be used
+  Resolves: #971808
 
 * Mon May 13 2013 Honza Horak <hhorak@redhat.com> 5.5.30-9
 - Run restorecon in %%post section of -server
