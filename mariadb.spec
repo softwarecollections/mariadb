@@ -430,6 +430,7 @@ chmod 644 $RPM_BUILD_ROOT%{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/logrotat
 # copy additional docs into build tree so %%doc will find them
 cp -p %{SOURCE6} README.mysql-docs
 cp -p %{SOURCE7} README.mysql-license
+cp -p %{SOURCE18} README.mariadb-devel
 
 # install the list of skipped tests to be available for user runs
 install -p -m 0644 mysql-test/rh-skipped-tests.list ${RPM_BUILD_ROOT}%{_datadir}/mysql-test
