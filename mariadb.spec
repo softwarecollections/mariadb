@@ -478,6 +478,7 @@ if [ $1 = 1 ]; then
 fi
 /bin/chmod 0755 %{?_scl_root}/var/lib/mysql
 /bin/touch /var/log/%{?scl_prefix}mysqld.log
+restorecon /var/log/%{?scl_prefix}mysqld.log >/dev/null 2>&1 || :
 
 %preun server
 if [ $1 = 0 ]; then
@@ -682,6 +683,9 @@ fi
 * Mon Jun 10 2013 Honza Horak <hhorak@redhat.com> 5.5.31-1
 - Rebase to 5.5.31
   https://kb.askmonty.org/en/mariadb-5531-changelog/
+  Resolves: #966951
+- Restore SELinux context of log file
+  Resolves: #971380
 
 * Mon May 13 2013 Honza Horak <hhorak@redhat.com> 5.5.30-9
 - Run restorecon in %%post section of -server
