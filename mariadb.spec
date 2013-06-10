@@ -1,8 +1,8 @@
 %{?scl:%scl_package mariadb}
 
 Name: %{?scl_prefix}mariadb
-Version: 5.5.30
-Release: 9%{?dist}
+Version: 5.5.31
+Release: 1%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -327,8 +327,10 @@ find $RPM_BUILD_ROOT -print | sed "s|^$RPM_BUILD_ROOT||" | sort > ROOTFILES
 # we only apply this to known Red Hat multilib arches, per bug #181335
 case `uname -i` in
   i386 | x86_64 | ppc | ppc64 | ppc64p7 | s390 | s390x | sparc | sparc64 )
-    mv $RPM_BUILD_ROOT%{_includedir}//mysql/my_config.h $RPM_BUILD_ROOT%{_includedir}//mysql/my_config_`uname -i`.h
+    mv $RPM_BUILD_ROOT%{_includedir}/mysql/my_config.h $RPM_BUILD_ROOT%{_includedir}/mysql/my_config_`uname -i`.h
+    mv $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h $RPM_BUILD_ROOT%{_includedir}/mysql/private/my_config_`uname -i`.h
     install -p -m 644 %{SOURCE5} $RPM_BUILD_ROOT%{_includedir}/mysql/
+    install -p -m 644 %{SOURCE5} $RPM_BUILD_ROOT%{_includedir}/mysql/private/config.h
     ;;
   *)
     ;;
@@ -345,8 +347,8 @@ chmod 755 ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
 
 # install INFO_SRC, INFO_BIN into libdir (upstream thinks these are doc files,
 # but that's pretty wacko --- see also mariadb-file-contents.patch)
-install -p -m 644 Docs/INFO_SRC ${RPM_BUILD_ROOT}%{_libdir}/mysql/
-install -p -m 644 Docs/INFO_BIN ${RPM_BUILD_ROOT}%{_libdir}/mysql/
+mv ${RPM_BUILD_ROOT}%{_docdir}/%{name}-%{version}/INFO_SRC ${RPM_BUILD_ROOT}%{_libdir}/mysql/
+mv ${RPM_BUILD_ROOT}%{_docdir}/%{name}-%{version}/INFO_BIN ${RPM_BUILD_ROOT}%{_libdir}/mysql/
 
 mkdir -p $RPM_BUILD_ROOT/var/log
 touch $RPM_BUILD_ROOT/var/log/%{?scl_prefix}mysqld.log
@@ -675,6 +677,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Mon Jun 10 2013 Honza Horak <hhorak@redhat.com> 5.5.31-1
+- Rebase to 5.5.31
+  https://kb.askmonty.org/en/mariadb-5531-changelog/
+
 * Mon May 13 2013 Honza Horak <hhorak@redhat.com> 5.5.30-9
 - Run restorecon in %%post section of -server
   Resolves: #962392
