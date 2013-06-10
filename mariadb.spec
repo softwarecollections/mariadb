@@ -2,7 +2,7 @@
 
 Name: %{?scl_prefix}mariadb
 Version: 5.5.31
-Release: 1%{?dist}
+Release: 2%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -684,6 +684,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Tue Jun 11 2013 Honza Horak <hhorak@redhat.com> 5.5.31-2
+- Fix service status for unprivileged user
+  Resolves: #971776
+
 * Mon Jun 10 2013 Honza Horak <hhorak@redhat.com> 5.5.31-1
 - Rebase to 5.5.31
   https://kb.askmonty.org/en/mariadb-5531-changelog/
