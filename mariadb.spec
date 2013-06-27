@@ -2,7 +2,7 @@
 
 Name: %{?scl_prefix}mariadb
 Version: 5.5.31
-Release: 2%{?dist}
+Release: 3%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -47,6 +47,8 @@ Patch11: mariadb-string-overflow.patch
 Patch12: mariadb-dh1024.patch
 Patch13: mariadb-man-plugin.patch
 Patch14: mariadb-basedir.patch
+Patch15: mariadb-covscan-signexpr.patch
+Patch16: mariadb-covscan-stroverflow.patch
 Patch101: mariadb-scl-env-check.patch
 Patch102: mariadb-daemonstatus.patch
 
@@ -171,6 +173,8 @@ MariaDB is a community developed branch of MySQL.
 %patch12 -p1
 %patch13 -p1
 %patch14 -p1
+%patch15 -p1
+%patch16 -p1
 
 # path fixes in source for dsc - using sed instead of patching, 
 # because we would need various patches for various collections
@@ -684,6 +688,10 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Mon Jul  1 2013 Honza Horak <hhorak@redhat.com> 5.5.31-3
+- Apply fixes found by Coverity static analysis tool
+  Resolves: #976765
+
 * Tue Jun 11 2013 Honza Horak <hhorak@redhat.com> 5.5.31-2
 - Fix service status for unprivileged user
   Resolves: #971776
