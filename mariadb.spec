@@ -49,6 +49,7 @@ Patch13: mariadb-man-plugin.patch
 Patch14: mariadb-basedir.patch
 Patch15: mariadb-covscan-signexpr.patch
 Patch16: mariadb-covscan-stroverflow.patch
+Patch17: mariadb-pluginerrmsg.patch
 Patch101: mariadb-scl-env-check.patch
 Patch102: mariadb-daemonstatus.patch
 
@@ -175,6 +176,7 @@ MariaDB is a community developed branch of MySQL.
 %patch14 -p1
 %patch15 -p1
 %patch16 -p1
+%patch17 -p1
 
 # path fixes in source for dsc - using sed instead of patching, 
 # because we would need various patches for various collections
@@ -691,6 +693,8 @@ fi
 * Mon Jul  1 2013 Honza Horak <hhorak@redhat.com> 5.5.31-3
 - Apply fixes found by Coverity static analysis tool
   Resolves: #976765
+- Fix misleading error message when uninstalling built-in plugins
+  Resolves: #966873
 
 * Tue Jun 11 2013 Honza Horak <hhorak@redhat.com> 5.5.31-2
 - Fix service status for unprivileged user
