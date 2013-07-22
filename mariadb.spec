@@ -462,6 +462,9 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/mariadb-%{version}/INFO_SRC
 rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/mariadb-%{version}/INSTALL-BINARY
 rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/mariadb-%{version}/README
 
+# we don't care about scripts for solaris
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
+
 %clean
 rm -rf $RPM_BUILD_ROOT
 
