@@ -694,6 +694,7 @@ fi
   https://kb.askmonty.org/en/mariadb-5533-changelog/
   https://kb.askmonty.org/en/mariadb-5533a-changelog/
 - Enable outfile_loaddata test
+- Disable tokudb_innodb_xa_crash test
 
 * Fri Jul 19 2013 Honza Horak <hhorak@redhat.com> 5.5.32-1
 - Rebase to 5.5.32
