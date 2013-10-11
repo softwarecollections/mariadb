@@ -1,7 +1,7 @@
 %{?scl:%scl_package mariadb}
 
 Name: %{?scl_prefix}mariadb
-Version: 5.5.32
+Version: 5.5.33a
 Release: 1%{?dist}
 
 Summary: A community developed branch of MySQL
@@ -46,6 +46,7 @@ Patch12: mariadb-dh1024.patch
 Patch14: mariadb-basedir.patch
 Patch15: mariadb-covscan-signexpr.patch
 Patch16: mariadb-covscan-stroverflow.patch
+Patch20: mariadb-cmakehostname.patch
 Patch101: mariadb-scl-env-check.patch
 Patch102: mariadb-daemonstatus.patch
 
@@ -171,6 +172,7 @@ MariaDB is a community developed branch of MySQL.
 %patch14 -p1
 %patch15 -p1
 %patch16 -p1
+%patch20 -p1
 
 # path fixes in source for dsc - using sed instead of patching, 
 # because we would need various patches for various collections
@@ -269,6 +271,7 @@ cmake . -DBUILD_CONFIG=mysql_release \
 	-DWITH_READLINE=ON \
 	-DWITH_SSL=system \
 	-DWITH_ZLIB=system \
+	-DWITH_JEMALLOC=no \
 	-DWITH_MYSQLD_LDFLAGS="-Wl,-z,relro,-z,now"
 
 make %{?_smp_mflags} VERBOSE=1
@@ -510,6 +513,7 @@ fi
 %{_bindir}/mysqlbinlog
 %{_bindir}/mysqlcheck
 %{_bindir}/mysqldump
+%{_bindir}/tokuftdump
 %{_bindir}/mysqlimport
 %{_bindir}/mysqlshow
 %{_bindir}/mysqlslap
@@ -604,6 +608,7 @@ fi
 %{_bindir}/resolveip
 
 %config(noreplace) %{_sysconfdir}/my.cnf.d/server.cnf
+%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf
 
 %{_libexecdir}/mysqld
 
@@ -684,6 +689,11 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Thu Oct 10 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-1
+- Rebase to 5.5.33a
+  https://kb.askmonty.org/en/mariadb-5533-changelog/
+  https://kb.askmonty.org/en/mariadb-5533a-changelog/
+
 * Fri Jul 19 2013 Honza Horak <hhorak@redhat.com> 5.5.32-1
 - Rebase to 5.5.32
   https://kb.askmonty.org/en/mariadb-5532-changelog/
