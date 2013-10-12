@@ -18,7 +18,7 @@ URL: http://mariadb.org
 License: GPLv2 with exceptions and LGPLv2 and BSD
 
 # Regression tests take a long time, you can skip 'em with this
-%{!?runselftest:%global runselftest 0}
+%{!?runselftest:%global runselftest 1}
 
 Source0: http://ftp.osuosl.org/pub/mariadb/mariadb-%{version}/kvm-tarbake-jaunty-x86/mariadb-%{version}.tar.gz
 Source3: my.cnf
@@ -26,10 +26,13 @@ Source5: my_config.h
 Source6: README.mysql-docs
 Source7: README.mysql-license
 Source8: libmysql.version
+Source10: mariadb.tmpfiles.d
+Source11: mariadb.service
+Source12: mysqld-prepare-db-dir
+Source13: mysqld-wait-ready
 Source14: rh-skipped-tests-base.list
 Source15: rh-skipped-tests-arm.list
-# Working around perl dependency checking bug in rpm FTTB. Remove later.
-Source17: mysql.init
+Source16: scl-service
 # We need to document how depended packages should be biult
 Source18: README.mariadb-devel
 Source999: filter-requires-mysql.sh
@@ -52,12 +55,10 @@ Patch15: mariadb-covscan-signexpr.patch
 Patch16: mariadb-covscan-stroverflow.patch
 Patch20: mariadb-cmakehostname.patch
 Patch101: mariadb-scl-env-check.patch
-Patch102: mariadb-daemonstatus.patch
 
-BuildRoot: %{_tmppath}/%{name}-%{version}-%{release}-root
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
-BuildRequires: systemtap-sdt-devel
+BuildRequires: systemd, systemtap-sdt-devel
 # make test requires time and ps
 BuildRequires: time procps
 # perl modules needed to run regression tests
@@ -103,7 +104,12 @@ Requires: %{name}%{?_isa} = %{version}-%{release}
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Requires: sh-utils
 Requires(pre): /usr/sbin/useradd
-Requires(post): policycoreutils
+# We require this to be present for %%{_prefix}/lib/tmpfiles.d
+Requires: systemd
+# Make sure it's there when scriptlets run, too
+Requires(post): systemd
+Requires(preun): systemd
+Requires(postun): systemd
 # mysqlhotcopy needs DBI/DBD support
 Requires: perl-DBI, perl-DBD-MySQL
 %{?scl:Requires:%scl_runtime}
@@ -190,18 +196,15 @@ sed -i -e 's|/var/log/mysql|/var/log/%{?scl_prefix}mysql|g' support-files/mysql-
 # path adding collection name into some scripts
 # patch is applied only if building into SCL
 # some values in patch are replaced by real value depending on collection name
-cp -p %{SOURCE17} mysql.init
+cp -p %{SOURCE11} mariadb.service
 %if 0%{?scl:1}
 %global scl_sed_patches 1
 %if %scl_sed_patches
 cat %{PATCH101} | sed -e "s/__SCL_NAME__/%{?scl}/g" \
        -e "s|__SCL_SCRIPTS__|%{?_scl_scripts}|g" \
        | patch -p1 -b --suffix .scl-env-check
-cat %{PATCH102} | sed -e "s/__SCL_NAME__/%{?scl}/g" \
-                | patch -p1 -b --suffix .daemonstatus
 %else
 patch -p1 -b --suffix .scl-env-check<%{PATCH101}
-patch -p1 -b --suffix .daemonstatus<%{PATCH102}
 %endif
 %endif
 
@@ -326,8 +329,6 @@ done
 %endif
 
 %install
-rm -rf $RPM_BUILD_ROOT
-
 make DESTDIR=$RPM_BUILD_ROOT install
 
 # List the installed tree for RPM package maintenance purposes.
@@ -371,6 +372,31 @@ sed    -e 's|datadir=/var/|datadir=%{?_scl_root}/var/|g' \
        -e 's|pid-file=/var/|pid-file=%{?_scl_root}/var/|g' >my.cnf <%{SOURCE3}
 install -p -m 0644 my.cnf $RPM_BUILD_ROOT%{_sysconfdir}/my.cnf
 
+# install systemd unit files and scripts for handling server startup
+# and fix path definitions in the scripts
+mkdir -p ${RPM_BUILD_ROOT}%{_unitdir}
+sed -i -e 's|/usr/libexec|%{_libexecdir}|' \
+       -e 's|/usr/bin/scl-service|%{_bindir}/scl-service|' \
+       -e 's|/usr/bin/mysqld_safe --basedir=/usr|%{_bindir}/mysqld_safe --basedir=%{_prefix}|' mysqld.service
+install -m 644 mariadb.service ${RPM_BUILD_ROOT}%{_unitdir}/%{?scl_prefix}mariadb.service
+install -m 755 %{SOURCE16} ${RPM_BUILD_ROOT}%{_bindir}
+
+sed    -e 's|/usr|%{_prefix}|' \
+       -e 's|/var|%{?_scl_root}/var|' \
+        -e 's|/etc|%{_sysconfdir}|' <%{SOURCE12} >mysqld-prepare-db-dir
+install -m 755 mysqld-prepare-db-dir ${RPM_BUILD_ROOT}%{_libexecdir}/
+
+sed -e 's|/etc/my.cnf|%{_sysconfdir}/my.cnf|' \
+       -e 's|/usr|%{_prefix}|' \
+       -e 's|/var/lib/|%{?_scl_root}/var/lib/|' \
+       -e 's|get_mysql_option mysqld socket "$datadir/mysql.sock"|get_mysql_option mysqld socket "/var/lib/mysql/mysql.sock"|' \
+       <%{SOURCE13} >mysqld-wait-ready
+install -m 755 mysqld-wait-ready ${RPM_BUILD_ROOT}%{_libexecdir}/
+
+mkdir -p $RPM_BUILD_ROOT%{?scl:%_root_prefix}%{!?scl:%_prefix}/lib/tmpfiles.d
+sed -e 's|/var/run/mysqld|%{?_scl_root}/var/run/mysqld|' <%{SOURCE10} >%{?scl_prefix}mariadb.conf
+install -m 0644 %{?scl_prefix}mariadb.conf $RPM_BUILD_ROOT%{?scl:%_root_prefix}%{!?scl:%_prefix}/lib/tmpfiles.d/%{?scl_prefix}mariadb.conf
+
 mkdir -p $RPM_BUILD_ROOT%{?_scl_root}/var/lock/subsys/
 mkdir -p $RPM_BUILD_ROOT%{?_scl_root}/var/run/mysqld
 install -m 0755 -d $RPM_BUILD_ROOT%{?_scl_root}/var/lib/mysql
@@ -379,18 +405,6 @@ install -m 0755 -d $RPM_BUILD_ROOT%{?_scl_root}/var/lib/mysql
 %if 0%{?scl:1}
 install -m 0755 -d $RPM_BUILD_ROOT/var/lib/mysql
 %endif
-
-mkdir -p $RPM_BUILD_ROOT%{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/rc.d/init.d
-sed -i -e 's|/etc/my.cnf|%{_sysconfdir}/my.cnf|g' \
-       -e 's|/etc/sysconfig/mysqld|%{_sysconfdir}/sysconfig/mysqld|g' \
-       -e 's|/etc/sysconfig/\$prog|%{_sysconfdir}/sysconfig/\$prog|g' \
-       -e 's|/var/run/mysqld/|%{?_scl_root}/var/run/mysqld/|g' \
-       -e 's|/usr|%{_prefix}|g' \
-       -e 's|/var/lock/|%{?_scl_root}/var/lock/|g' \
-       -e 's|/var/lib/|%{?_scl_root}/var/lib/|g' \
-       -e 's|/var/log/mysqld.log|/var/log/%{?scl_prefix}mysqld.log|g' \
-       -e 's|get_mysql_option mysqld socket "$datadir/mysql.sock"|get_mysql_option mysqld socket "/var/lib/mysql/mysql.sock"|g' mysql.init
-install -p -m 0755 mysql.init $RPM_BUILD_ROOT%{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/rc.d/init.d/%{?scl_prefix}mysqld
 
 # Fix funny permissions that cmake build scripts apply to config files
 chmod 644 ${RPM_BUILD_ROOT}%{_datadir}/mysql/config.*.ini
@@ -474,37 +488,23 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/mariadb-%{version}/README
 # we don't care about scripts for solaris
 rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
 
-%clean
-rm -rf $RPM_BUILD_ROOT
-
 %pre server
 /usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
 /usr/sbin/useradd -M -N -g mysql -o -r -d /var/lib/mysql -s /bin/bash \
 	-c "MariaDB Server" -u 27 mysql >/dev/null 2>&1 || :
 
 %post server
-restorecon -R %{_scl_root} >/dev/null 2>&1 || :
-restorecon /etc/rc.d/init.d/%{scl_prefix}mysqld >/dev/null 2>&1 || :
-if [ $1 = 1 ]; then
-    /sbin/chkconfig --add %{?scl_prefix}mysqld
-fi
+%systemd_post %{?scl_prefix}mariadb.service
 /bin/chmod 0755 %{?_scl_root}/var/lib/mysql
-/bin/touch /var/log/%{?scl_prefix}mysqld.log
-restorecon /var/log/%{?scl_prefix}mysqld.log >/dev/null 2>&1 || :
+/bin/touch /var/log/%{?scl_prefix}mariadb/mariadb.log
 
 %preun server
-if [ $1 = 0 ]; then
-    /sbin/service %{?scl_prefix}mysqld stop >/dev/null 2>&1
-    /sbin/chkconfig --del %{?scl_prefix}mysqld
-fi
+%systemd_preun %{?scl_prefix}mariadb.service
 
 %postun server
-if [ $1 -ge 1 ]; then
-    /sbin/service %{?scl_prefix}mysqld condrestart >/dev/null 2>&1 || :
-fi
+%systemd_postun_with_restart %{?scl_prefix}mariadb.service
 
 %files
-%defattr(-,root,root)
 %doc README COPYING COPYING.LESSER README.mysql-license
 %doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
 %doc README.mysql-docs
@@ -548,7 +548,6 @@ fi
 %config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
 
 %files libs
-%defattr(-,root,root)
 %doc README COPYING COPYING.LESSER README.mysql-license
 %doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
 # although the default my.cnf contains only server settings, we put it in the
@@ -585,7 +584,6 @@ fi
 %{_datadir}/mysql/charsets
 
 %files server
-%defattr(-,root,root)
 %doc support-files/*.cnf
 
 %{_bindir}/myisamchk
@@ -666,7 +664,11 @@ fi
 %{_datadir}/mysql/my-*.cnf
 %{_datadir}/mysql/config.*.ini
 
-%{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/rc.d/init.d/%{?scl_prefix}mysqld
+%{_unitdir}/%{?scl_prefix}mariadb.service
+%{_libexecdir}/mysqld-prepare-db-dir
+%{_libexecdir}/mysqld-wait-ready
+%{_bindir}/scl-service
+%{?scl:%_root_prefix}%{!?scl:%_prefix}/lib/tmpfiles.d/%{?scl_prefix}mariadb.conf
 
 %attr(0755,mysql,mysql) %dir %{?_scl_root}/var/run/mysqld
 %attr(0755,mysql,mysql) %dir %{?_scl_root}/var/lib/mysql
@@ -677,17 +679,14 @@ fi
 %config(noreplace) %{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/logrotate.d/%{?scl_prefix}mysqld
 
 %files devel
-%defattr(-,root,root)
 %doc README.mariadb-devel
 %{_includedir}/mysql
 %{_datadir}/aclocal/mysql.m4
  
 %files bench
-%defattr(-,root,root)
 %{_datadir}/sql-bench
 
 %files test
-%defattr(-,root,root)
 %{_bindir}/mysql_client_test
 %{_bindir}/my_safe_process
 %attr(-,mysql,mysql) %{_datadir}/mysql-test
@@ -695,6 +694,9 @@ fi
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Mon Oct 14 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-2
+- Add stuff needed for RHEL-7
+
 * Thu Oct 10 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-1
 - Rebase to 5.5.33a
   https://kb.askmonty.org/en/mariadb-5533-changelog/
