@@ -1,5 +1,9 @@
 %{?scl:%scl_package mariadb}
 
+# TokuDB engine is now part of MariaDB, but it is available only for x86_64;
+# variable tokudb allows to build with TokuDB storage engine
+%bcond_with tokudb
+
 Name: %{?scl_prefix}mariadb
 Version: 5.5.33a
 Release: 1%{?dist}
@@ -14,7 +18,7 @@ URL: http://mariadb.org
 License: GPLv2 with exceptions and LGPLv2 and BSD
 
 # Regression tests take a long time, you can skip 'em with this
-%{!?runselftest:%global runselftest 1}
+%{!?runselftest:%global runselftest 0}
 
 Source0: http://ftp.osuosl.org/pub/mariadb/mariadb-%{version}/kvm-tarbake-jaunty-x86/mariadb-%{version}.tar.gz
 Source3: my.cnf
@@ -272,6 +276,8 @@ cmake . -DBUILD_CONFIG=mysql_release \
 	-DWITH_SSL=system \
 	-DWITH_ZLIB=system \
 	-DWITH_JEMALLOC=no \
+%{!?with_tokudb:	-DWITHOUT_TOKUDB=ON}\
+	-DTMPDIR=%{_localstatedir}/tmp \
 	-DWITH_MYSQLD_LDFLAGS="-Wl,-z,relro,-z,now"
 
 make %{?_smp_mflags} VERBOSE=1
@@ -513,7 +519,7 @@ fi
 %{_bindir}/mysqlbinlog
 %{_bindir}/mysqlcheck
 %{_bindir}/mysqldump
-%{_bindir}/tokuftdump
+%{?with_tokudb:%{_bindir}/tokuftdump}
 %{_bindir}/mysqlimport
 %{_bindir}/mysqlshow
 %{_bindir}/mysqlslap
@@ -608,7 +614,7 @@ fi
 %{_bindir}/resolveip
 
 %config(noreplace) %{_sysconfdir}/my.cnf.d/server.cnf
-%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf
+%{?with_tokudb:%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf}
 
 %{_libexecdir}/mysqld
 
