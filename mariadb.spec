@@ -378,7 +378,7 @@ install -p -m 0644 my.cnf $RPM_BUILD_ROOT%{_sysconfdir}/my.cnf
 mkdir -p ${RPM_BUILD_ROOT}%{_unitdir}
 sed -i -e 's|/usr/libexec|%{_libexecdir}|' \
        -e 's|/usr/bin/scl-service|%{_bindir}/scl-service|' \
-       -e 's|/usr/bin/mysqld_safe --basedir=/usr|%{_bindir}/mysqld_safe --basedir=%{_prefix}|' mysqld.service
+       -e 's|/usr/bin/mysqld_safe --basedir=/usr|%{_bindir}/mysqld_safe --basedir=%{_prefix}|' mariadb.service
 install -m 644 mariadb.service ${RPM_BUILD_ROOT}%{_unitdir}/%{?scl_prefix}mariadb.service
 install -m 755 %{SOURCE16} ${RPM_BUILD_ROOT}%{_bindir}
 
