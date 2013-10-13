@@ -259,6 +259,7 @@ cmake . -DBUILD_CONFIG=mysql_release \
 	-DINSTALL_LAYOUT=RPM \
 	-DCMAKE_INSTALL_PREFIX="%{_prefix}" \
 	-DINSTALL_SYSCONFDIR="%{_sysconfdir}" \
+	-DINSTALL_SYSCONF2DIR="%{_sysconfdir}/my.cnf.d" \
 	-DINSTALL_INCLUDEDIR=include/mysql \
 	-DINSTALL_INFODIR=share/info \
 	-DINSTALL_LIBDIR="%{_lib}/mysql" \
@@ -358,8 +359,8 @@ chmod 755 ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
 
 # install INFO_SRC, INFO_BIN into libdir (upstream thinks these are doc files,
 # but that's pretty wacko --- see also mariadb-file-contents.patch)
-mv ${RPM_BUILD_ROOT}%{_docdir}/mariadb-%{version}/INFO_SRC ${RPM_BUILD_ROOT}%{_libdir}/mysql/
-mv ${RPM_BUILD_ROOT}%{_docdir}/mariadb-%{version}/INFO_BIN ${RPM_BUILD_ROOT}%{_libdir}/mysql/
+install -p -m 644 Docs/INFO_SRC ${RPM_BUILD_ROOT}%{_libdir}/mysql/
+install -p -m 644 Docs/INFO_BIN ${RPM_BUILD_ROOT}%{_libdir}/mysql/
 
 mkdir -p $RPM_BUILD_ROOT/var/log
 touch $RPM_BUILD_ROOT/var/log/%{?scl_prefix}mysqld.log
@@ -478,12 +479,12 @@ rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/init.d/mysql
 rm -f ${RPM_BUILD_ROOT}%{_sysconfdir}/logrotate.d/mysql
 
 # remove doc files that we rather pack using %%doc
-rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/mariadb-%{version}/COPYING
-rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/mariadb-%{version}/COPYING.LESSER
-rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/mariadb-%{version}/INFO_BIN
-rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/mariadb-%{version}/INFO_SRC
-rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/mariadb-%{version}/INSTALL-BINARY
-rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/mariadb-%{version}/README
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/COPYING
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/COPYING.LESSER
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/INFO_BIN
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/INFO_SRC
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/INSTALL-BINARY
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/README
 
 # we don't care about scripts for solaris
 rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
