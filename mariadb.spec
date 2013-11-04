@@ -6,7 +6,7 @@
 
 Name: %{?scl_prefix}mariadb
 Version: 5.5.33a
-Release: 1%{?dist}
+Release: 2%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -59,6 +59,7 @@ Patch101: mariadb-scl-env-check.patch
 BuildRequires: perl, readline-devel, openssl-devel
 BuildRequires: cmake, ncurses-devel, zlib-devel, libaio-devel
 BuildRequires: systemd, systemtap-sdt-devel
+BuildRequires: pam-devel
 # make test requires time and ps
 BuildRequires: time procps
 # perl modules needed to run regression tests
@@ -695,6 +696,10 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Mon Nov 04 2013 Jakub Dorňák <jdornak@redhat.com> - 5.5.33a-2
+- Add pam-devel to BuildRequires for auth_pam.so to be built
+  Resolves: #1019868
+
 * Mon Oct 14 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-2
 - Add stuff needed for RHEL-7
 
