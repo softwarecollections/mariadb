@@ -495,7 +495,7 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
 %post server
 %systemd_post %{?scl_prefix}mariadb.service
 /bin/chmod 0755 %{?_scl_root}/var/lib/mysql
-/bin/touch /var/log/%{?scl_prefix}mariadb/mariadb.log
+/bin/touch /var/log/%{?scl_prefix}mysqld.log
 
 %preun server
 %systemd_preun %{?scl_prefix}mariadb.service
@@ -696,6 +696,8 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
 - Use scl enable -- feature
 - Check if correct process is running in mysql-wait-ready script
   Related: #1025323
+- Use correct log file name in post script
+  Resolves: #1025280
 
 * Mon Nov 04 2013 Jakub Dorňák <jdornak@redhat.com> - 5.5.33a-2
 - Add pam-devel to BuildRequires for auth_pam.so to be built
