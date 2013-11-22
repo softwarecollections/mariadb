@@ -6,7 +6,7 @@
 
 Name: %{?scl_prefix}mariadb
 Version: 5.5.33a
-Release: 2%{?dist}
+Release: 3%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -32,7 +32,6 @@ Source12: mysqld-prepare-db-dir
 Source13: mysqld-wait-ready
 Source14: rh-skipped-tests-base.list
 Source15: rh-skipped-tests-arm.list
-Source16: scl-service
 # We need to document how depended packages should be biult
 Source18: README.mariadb-devel
 Source999: filter-requires-mysql.sh
@@ -378,10 +377,8 @@ install -p -m 0644 my.cnf $RPM_BUILD_ROOT%{_sysconfdir}/my.cnf
 # and fix path definitions in the scripts
 mkdir -p ${RPM_BUILD_ROOT}%{_unitdir}
 sed -i -e 's|/usr/libexec|%{_libexecdir}|' \
-       -e 's|/usr/bin/scl-service|%{_bindir}/scl-service|' \
        -e 's|/usr/bin/mysqld_safe --basedir=/usr|%{_bindir}/mysqld_safe --basedir=%{_prefix}|' mariadb.service
 install -m 644 mariadb.service ${RPM_BUILD_ROOT}%{_unitdir}/%{?scl_prefix}mariadb.service
-install -m 755 %{SOURCE16} ${RPM_BUILD_ROOT}%{_bindir}
 
 sed    -e 's|/usr|%{_prefix}|' \
        -e 's|/var|%{?_scl_root}/var|' \
@@ -669,7 +666,6 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
 %{_unitdir}/%{?scl_prefix}mariadb.service
 %{_libexecdir}/mysqld-prepare-db-dir
 %{_libexecdir}/mysqld-wait-ready
-%{_bindir}/scl-service
 %{?scl:%_root_prefix}%{!?scl:%_prefix}/lib/tmpfiles.d/%{?scl_prefix}mariadb.conf
 
 %attr(0755,mysql,mysql) %dir %{?_scl_root}/var/run/mysqld
@@ -696,14 +692,17 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Fri Nov 22 2013 Honza Horak <hhorak@redhat.com> 5.5.33a-3
+- Use scl enable -- feature
+
 * Mon Nov 04 2013 Jakub Dorňák <jdornak@redhat.com> - 5.5.33a-2
 - Add pam-devel to BuildRequires for auth_pam.so to be built
   Resolves: #1019868
 
-* Mon Oct 14 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-2
+* Mon Oct 14 2013 Honza Horak <hhorak@redhat.com> 5.5.33a-2
 - Add stuff needed for RHEL-7
 
-* Thu Oct 10 2013 Honza Horak <hhorak@redhat.com> 1:5.5.33a-1
+* Thu Oct 10 2013 Honza Horak <hhorak@redhat.com> 5.5.33a-1
 - Rebase to 5.5.33a
   https://kb.askmonty.org/en/mariadb-5533-changelog/
   https://kb.askmonty.org/en/mariadb-5533a-changelog/
