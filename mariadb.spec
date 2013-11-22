@@ -694,6 +694,8 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
 %changelog
 * Fri Nov 22 2013 Honza Horak <hhorak@redhat.com> 5.5.33a-3
 - Use scl enable -- feature
+- Check if correct process is running in mysql-wait-ready script
+  Related: #1025323
 
 * Mon Nov 04 2013 Jakub Dorňák <jdornak@redhat.com> - 5.5.33a-2
 - Add pam-devel to BuildRequires for auth_pam.so to be built
