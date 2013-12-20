@@ -6,7 +6,7 @@
 
 Name: %{?scl_prefix}mariadb
 Version: 5.5.34
-Release: 3%{?dist}
+Release: 4%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -690,6 +690,10 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Fri Dec 20 2013 Honza Horak <hhorak@redhat.com> 5.5.34-4
+- Check if socket is being used before starting
+  Related: #1037748
+
 * Wed Nov 27 2013 Honza Horak <hhorak@redhat.com> 5.5.34-3
 - Rebuild for openssl dependency issues
 
