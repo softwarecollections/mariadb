@@ -6,7 +6,7 @@
 
 Name: %{?scl_prefix}mariadb
 Version: 5.5.34
-Release: 4%{?dist}
+Release: 5%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -127,6 +127,8 @@ Group: Applications/Databases
 Requires: %{name}%{?_isa} = %{version}-%{release}
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Requires: openssl-devel%{?_isa}
+# we need fuser utility from psmisc to check unix socket
+Requires: psmisc
 
 %description devel
 MariaDB is a multi-user, multi-threaded SQL database server. This
@@ -690,6 +692,10 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Sat Dec 21 2013 Honza Horak <hhorak@redhat.com> 5.5.34-5
+- Require psmisc so we have fuser utility
+  Related: #1037748
+
 * Fri Dec 20 2013 Honza Horak <hhorak@redhat.com> 5.5.34-4
 - Check if socket is being used before starting
   Related: #1037748
