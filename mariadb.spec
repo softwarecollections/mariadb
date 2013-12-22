@@ -6,7 +6,7 @@
 
 Name: %{?scl_prefix}mariadb
 Version: 5.5.34
-Release: 5%{?dist}
+Release: 6%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -52,6 +52,7 @@ Patch12: mariadb-dh1024.patch
 Patch14: mariadb-basedir.patch
 Patch15: mariadb-covscan-signexpr.patch
 Patch16: mariadb-covscan-stroverflow.patch
+Patch17: mariadb-ssltest.patch
 Patch101: mariadb-scl-env-check.patch
 
 BuildRequires: perl, readline-devel, openssl-devel
@@ -183,6 +184,7 @@ MariaDB is a community developed branch of MySQL.
 %patch14 -p1
 %patch15 -p1
 %patch16 -p1
+%patch17 -p1
 
 # path fixes in source for dsc - using sed instead of patching, 
 # because we would need various patches for various collections
@@ -692,6 +694,11 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Sun Dec 22 2013 Honza Horak <hhorak@redhat.com> 5.5.34-6
+- Don't test EDH-RSA-DES-CBC-SHA cipher, it seems to be removed from openssl
+  which now makes mariadb/mysql FTBFS because openssl_1 test fails
+  Related: #1037748
+ 
 * Sat Dec 21 2013 Honza Horak <hhorak@redhat.com> 5.5.34-5
 - Require psmisc so we have fuser utility
   Related: #1037748
