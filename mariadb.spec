@@ -5,7 +5,7 @@
 %bcond_with tokudb
 
 Name: %{?scl_prefix}mariadb
-Version: 5.5.34
+Version: 5.5.35
 Release: 6%{?dist}
 
 Summary: A community developed branch of MySQL
@@ -104,6 +104,8 @@ Requires: %{name}%{?_isa} = %{version}-%{release}
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Requires: sh-utils
 Requires(pre): /usr/sbin/useradd
+# we need fuser utility from psmisc to check unix socket
+Requires: psmisc
 # We require this to be present for %%{_prefix}/lib/tmpfiles.d
 Requires: systemd
 # Make sure it's there when scriptlets run, too
@@ -128,8 +130,6 @@ Group: Applications/Databases
 Requires: %{name}%{?_isa} = %{version}-%{release}
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Requires: openssl-devel%{?_isa}
-# we need fuser utility from psmisc to check unix socket
-Requires: psmisc
 
 %description devel
 MariaDB is a multi-user, multi-threaded SQL database server. This
@@ -694,6 +694,14 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Wed Feb 12 2014 Honza Horak <hhorak@redhat.com> 5.5.35-6
+- Rebase to 5.5.35
+  https://kb.askmonty.org/en/mariadb-5535-changelog/
+  Also fixes: CVE-2014-0001, CVE-2014-0412, CVE-2014-0437, CVE-2013-5908,
+  CVE-2014-0420, CVE-2014-0393, CVE-2013-5891, CVE-2014-0386, CVE-2014-0401,
+  CVE-2014-0402
+  Resolves: #1056457
+
 * Sun Dec 22 2013 Honza Horak <hhorak@redhat.com> 5.5.34-6
 - Don't test EDH-RSA-DES-CBC-SHA cipher, it seems to be removed from openssl
   which now makes mariadb/mysql FTBFS because openssl_1 test fails
