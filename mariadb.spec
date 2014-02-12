@@ -112,6 +112,9 @@ Group: Applications/Databases
 Requires: %{name}%{?_isa} = %{version}-%{release}
 Requires: %{name}-libs%{?_isa} = %{version}-%{release}
 Requires: sh-utils
+Requires: /usr/bin/scl_source
+# we need fuser utility from psmisc to check unix socket
+Requires: psmisc
 Requires(pre): /usr/sbin/useradd
 # we need fuser utility from psmisc to check unix socket
 Requires: psmisc
@@ -712,6 +715,8 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
   Resolves: #1056457
 - Use log file corresponding with RHEL-7 base
   Resolves: #1007861
+- Require /usr/bin/scl_source that is not in every scl-utils
+  Resolves: #1054649
 
 * Sun Dec 22 2013 Honza Horak <hhorak@redhat.com> 5.5.34-6
 - Don't test EDH-RSA-DES-CBC-SHA cipher, it seems to be removed from openssl
