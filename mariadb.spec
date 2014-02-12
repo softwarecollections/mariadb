@@ -77,6 +77,15 @@ Requires: grep, fileutils, bash
 # Turn that off to ensure such files don't get included in RPMs (cf bz#884755).
 %global _default_patch_flags --no-backup-if-mismatch
 
+# Define service name and corresponding log file name
+%if 0%{?rhel} <= 6
+%global service_name %{?scl_prefix}mysqld
+%global log_path /var/log/%{?scl_prefix}mysqld.log
+%else
+%global service_name %{name}
+%global log_path /var/log/%{name}/%{name}.log
+%endif
+
 %description
 MariaDB is a community developed branch of MySQL.
 MariaDB is a multi-user, multi-threaded SQL database server.
@@ -193,7 +202,7 @@ sed -i -e 's|/etc/my|%{_sysconfdir}/my|g' scripts/mysqld_multi.sh
 sed -i -e 's|/etc/|%{_sysconfdir}/|g' scripts/mysqlaccess.sh
 sed -i -e 's|/usr/|%{_prefix}/|g' ./client/mysql_plugin.c
 sed -i -e 's|/usr|%{_prefix}|g' ./mysql-test/t/file_contents.test
-sed -i -e 's|/var/log/mysql|/var/log/%{?scl_prefix}mysql|g' support-files/mysql-log-rotate.sh
+sed -i -e 's|/var/log/mysqld.log|%{log_path}|g' support-files/mysql-log-rotate.sh
 
 # path adding collection name into some scripts
 # patch is applied only if building into SCL
@@ -364,13 +373,13 @@ chmod 755 ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
 install -p -m 644 Docs/INFO_SRC ${RPM_BUILD_ROOT}%{_libdir}/mysql/
 install -p -m 644 Docs/INFO_BIN ${RPM_BUILD_ROOT}%{_libdir}/mysql/
 
-mkdir -p $RPM_BUILD_ROOT/var/log
-touch $RPM_BUILD_ROOT/var/log/%{?scl_prefix}mysqld.log
+mkdir -p `dirname $RPM_BUILD_ROOT%{log_path}`
+touch $RPM_BUILD_ROOT%{log_path}
 
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}
 # fix path definitions in my.cnf file
 sed    -e 's|datadir=/var/|datadir=%{?_scl_root}/var/|g' \
-       -e 's|log-error=/var/log/mysqld.log|log-error=/var/log/%{?scl_prefix}mysqld.log|g' \
+       -e 's|log-error=/var/log/mysqld.log|log-error=%{log_path}|g' \
        -e 's|!includedir /etc/|!includedir %{_sysconfdir}/|g' \
        -e 's|pid-file=/var/|pid-file=%{?_scl_root}/var/|g' >my.cnf <%{SOURCE3}
 install -p -m 0644 my.cnf $RPM_BUILD_ROOT%{_sysconfdir}/my.cnf
@@ -380,7 +389,7 @@ install -p -m 0644 my.cnf $RPM_BUILD_ROOT%{_sysconfdir}/my.cnf
 mkdir -p ${RPM_BUILD_ROOT}%{_unitdir}
 sed -i -e 's|/usr/libexec|%{_libexecdir}|' \
        -e 's|/usr/bin/mysqld_safe --basedir=/usr|%{_bindir}/mysqld_safe --basedir=%{_prefix}|' mariadb.service
-install -m 644 mariadb.service ${RPM_BUILD_ROOT}%{_unitdir}/%{?scl_prefix}mariadb.service
+install -m 644 mariadb.service ${RPM_BUILD_ROOT}%{_unitdir}/%{service_name}.service
 
 sed    -e 's|/usr|%{_prefix}|' \
        -e 's|/var|%{?_scl_root}/var|' \
@@ -445,8 +454,8 @@ rm -f ${RPM_BUILD_ROOT}%{_mandir}/man1/mysql-test-run.pl.1*
 
 # put logrotate script where it needs to be
 mkdir -p $RPM_BUILD_ROOT%{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/logrotate.d
-mv ${RPM_BUILD_ROOT}%{_datadir}/mysql/mysql-log-rotate $RPM_BUILD_ROOT%{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/logrotate.d/%{?scl_prefix}mysqld
-chmod 644 $RPM_BUILD_ROOT%{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/logrotate.d/%{?scl_prefix}mysqld
+mv ${RPM_BUILD_ROOT}%{_datadir}/mysql/mysql-log-rotate $RPM_BUILD_ROOT%{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/logrotate.d/%{service_name}
+chmod 644 $RPM_BUILD_ROOT%{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/logrotate.d/%{service_name}
 
 # copy additional docs into build tree so %%doc will find them
 cp -p %{SOURCE6} README.mysql-docs
@@ -495,15 +504,15 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
 	-c "MariaDB Server" -u 27 mysql >/dev/null 2>&1 || :
 
 %post server
-%systemd_post %{?scl_prefix}mariadb.service
+%systemd_post %{service_name}.service
 /bin/chmod 0755 %{?_scl_root}/var/lib/mysql
-/bin/touch /var/log/%{?scl_prefix}mysqld.log
+/bin/touch %{log_path}
 
 %preun server
-%systemd_preun %{?scl_prefix}mariadb.service
+%systemd_preun %{service_name}.service
 
 %postun server
-%systemd_postun_with_restart %{?scl_prefix}mariadb.service
+%systemd_postun_with_restart %{service_name}.service
 
 %files
 %doc README COPYING COPYING.LESSER README.mysql-license
@@ -665,7 +674,7 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
 %{_datadir}/mysql/my-*.cnf
 %{_datadir}/mysql/config.*.ini
 
-%{_unitdir}/%{?scl_prefix}mariadb.service
+%{_unitdir}/%{service_name}.service
 %{_libexecdir}/mysqld-prepare-db-dir
 %{_libexecdir}/mysqld-wait-ready
 %{?scl:%_root_prefix}%{!?scl:%_prefix}/lib/tmpfiles.d/%{?scl_prefix}mariadb.conf
@@ -675,8 +684,8 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
 %if 0%{?scl:1}
 %attr(0755,mysql,mysql) %dir /var/lib/mysql
 %endif
-%attr(0640,mysql,mysql) %config(noreplace) %verify(not md5 size mtime) /var/log/%{?scl_prefix}mysqld.log
-%config(noreplace) %{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/logrotate.d/%{?scl_prefix}mysqld
+%attr(0640,mysql,mysql) %config(noreplace) %verify(not md5 size mtime) %{log_path}
+%config(noreplace) %{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/logrotate.d/%{service_name}
 
 %files devel
 %doc README.mariadb-devel
@@ -701,6 +710,8 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
   CVE-2014-0420, CVE-2014-0393, CVE-2013-5891, CVE-2014-0386, CVE-2014-0401,
   CVE-2014-0402
   Resolves: #1056457
+- Use log file corresponding with RHEL-7 base
+  Resolves: #1007861
 
 * Sun Dec 22 2013 Honza Horak <hhorak@redhat.com> 5.5.34-6
 - Don't test EDH-RSA-DES-CBC-SHA cipher, it seems to be removed from openssl
