@@ -34,6 +34,7 @@ Source14: rh-skipped-tests-base.list
 Source15: rh-skipped-tests-arm.list
 # We need to document how depended packages should be biult
 Source18: README.mariadb-devel
+Source998: filter-provides-mysql.sh
 Source999: filter-requires-mysql.sh
 
 # Comments for these patches are in the patch files.
@@ -70,6 +71,8 @@ Requires: grep, fileutils, bash
 %{?scl:Requires:%scl_runtime}
 
 # When rpm 4.9 is universal, this could be cleaned up:
+%global __perl_provides %{SOURCE998}
+%global __perllib_provides %{SOURCE998}
 %global __perl_requires %{SOURCE999}
 %global __perllib_requires %{SOURCE999}
 
@@ -719,6 +722,8 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
   Resolves: #1054649
 - Fix advice after initialization of data stack
   Resolves: #1056135
+- Remove perl provides so no dependency can be made on them
+  Resolves: #1042873
 
 * Sun Dec 22 2013 Honza Horak <hhorak@redhat.com> 5.5.34-6
 - Don't test EDH-RSA-DES-CBC-SHA cipher, it seems to be removed from openssl
