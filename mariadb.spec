@@ -6,7 +6,7 @@
 
 Name: %{?scl_prefix}mariadb
 Version: 5.5.35
-Release: 6%{?dist}
+Release: 7%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -298,7 +298,7 @@ cmake . -DBUILD_CONFIG=mysql_release \
 	-DWITH_ZLIB=system \
 	-DWITH_JEMALLOC=no \
 %{!?with_tokudb:	-DWITHOUT_TOKUDB=ON}\
-	-DTMPDIR=%{_localstatedir}/tmp \
+	-DTMPDIR=/var/tmp \
 	-DWITH_MYSQLD_LDFLAGS="-Wl,-z,relro,-z,now"
 
 make %{?_smp_mflags} VERBOSE=1
@@ -709,6 +709,10 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Thu Mar 27 2014 Honza Horak <hhorak@redhat.com> - 5.5.35-7
+- Use correct path to tmp dir
+  Related: #1056457
+
 * Wed Feb 12 2014 Honza Horak <hhorak@redhat.com> 5.5.35-6
 - Rebase to 5.5.35
   https://kb.askmonty.org/en/mariadb-5535-changelog/
