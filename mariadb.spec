@@ -5,7 +5,7 @@
 %bcond_with tokudb
 
 Name: %{?scl_prefix}mariadb
-Version: 5.5.35
+Version: 5.5.36
 Release: 7%{?dist}
 
 Summary: A community developed branch of MySQL
@@ -41,7 +41,6 @@ Source999: filter-requires-mysql.sh
 Patch1: mariadb-errno.patch
 Patch2: mariadb-strmov.patch
 Patch3: mariadb-install-test.patch
-Patch4: mariadb-expired-certs.patch
 Patch5: mariadb-versioning.patch
 Patch6: mariadb-dubious-exports.patch
 Patch7: mariadb-s390-tsc.patch
@@ -187,7 +186,6 @@ MariaDB is a community developed branch of MySQL.
 %patch1 -p1
 %patch2 -p1
 %patch3 -p1
-%patch4 -p1
 %patch5 -p1
 %patch6 -p1
 %patch7 -p1
@@ -712,6 +710,8 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
 * Thu Mar 27 2014 Honza Horak <hhorak@redhat.com> - 5.5.35-7
 - Use correct path to tmp dir
   Related: #1056457
+- Rebase to 5.5.36
+  https://kb.askmonty.org/en/mariadb-5536-changelog/
 
 * Wed Feb 12 2014 Honza Horak <hhorak@redhat.com> 5.5.35-6
 - Rebase to 5.5.35
