@@ -1,6 +1,6 @@
-diff -up mariadb-5.5.35/mariadb.service.scl-env-check mariadb-5.5.35/mariadb.service
---- mariadb-5.5.35/mariadb.service.scl-env-check	2014-02-13 12:36:08.047626477 +0100
-+++ mariadb-5.5.35/mariadb.service	2014-02-13 13:08:13.426562931 +0100
+diff -up mariadb-5.5.36/mariadb.service.scl-env-check mariadb-5.5.36/mariadb.service
+--- mariadb-5.5.36/mariadb.service.scl-env-check	2014-03-27 23:30:02.802823519 +0100
++++ mariadb-5.5.36/mariadb.service	2014-03-27 23:32:32.774633107 +0100
 @@ -27,11 +27,16 @@ Type=simple
  User=mysql
  Group=mysql
@@ -18,12 +18,12 @@ diff -up mariadb-5.5.35/mariadb.service.scl-env-check mariadb-5.5.35/mariadb.ser
 -ExecStartPost=/usr/libexec/mysqld-wait-ready $MAINPID
 +ExecStart=/usr/bin/scl enable $MARIADB55_SCLS_ENABLED -- /usr/bin/mysqld_safe --basedir=/usr
 +ExecStartPost=/usr/bin/scl enable $MARIADB55_SCLS_ENABLED -- /usr/libexec/mysqld-wait-ready $MAINPID
+ ExecStopPost=/usr/libexec/mysqld-wait-stop
  
- # See how we were called.
- case "$1" in
+ # Give a reasonable amount of time for the server to start up/shut down
 diff -up mariadb-5.5.36/scripts/mysqld_safe.sh.scl-env-check mariadb-5.5.36/scripts/mysqld_safe.sh
 --- mariadb-5.5.36/scripts/mysqld_safe.sh.scl-env-check	2014-02-24 00:50:19.000000000 +0100
-+++ mariadb-5.5.36/scripts/mysqld_safe.sh	2014-03-27 17:13:53.559925930 +0100
++++ mariadb-5.5.36/scripts/mysqld_safe.sh	2014-03-27 23:30:02.803823518 +0100
 @@ -11,6 +11,12 @@
  # mysql.server works by first doing a cd to the base directory and from there
  # executing mysqld_safe
@@ -39,7 +39,7 @@ diff -up mariadb-5.5.36/scripts/mysqld_safe.sh.scl-env-check mariadb-5.5.36/scri
  MYSQLD=
 diff -up mariadb-5.5.36/scripts/mysql_install_db.sh.scl-env-check mariadb-5.5.36/scripts/mysql_install_db.sh
 --- mariadb-5.5.36/scripts/mysql_install_db.sh.scl-env-check	2014-02-24 00:50:30.000000000 +0100
-+++ mariadb-5.5.36/scripts/mysql_install_db.sh	2014-03-27 17:15:52.708131445 +0100
++++ mariadb-5.5.36/scripts/mysql_install_db.sh	2014-03-27 23:30:02.803823518 +0100
 @@ -19,6 +19,12 @@
  #
  # All unrecognized arguments to this script are passed to mysqld.

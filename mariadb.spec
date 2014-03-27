@@ -32,6 +32,7 @@ Source12: mysqld-prepare-db-dir
 Source13: mysqld-wait-ready
 Source14: rh-skipped-tests-base.list
 Source15: rh-skipped-tests-arm.list
+Source16: mysqld-wait-stop
 # We need to document how depended packages should be biult
 Source18: README.mariadb-devel
 Source998: filter-provides-mysql.sh
@@ -407,6 +408,11 @@ sed -e 's|/etc/my.cnf|%{_sysconfdir}/my.cnf|' \
        <%{SOURCE13} >mysqld-wait-ready
 install -m 755 mysqld-wait-ready ${RPM_BUILD_ROOT}%{_libexecdir}/
 
+sed -e 's|/etc/my.cnf|%{_sysconfdir}/my.cnf|' \
+       -e 's|/usr|%{_prefix}|' \
+       <%{SOURCE16} >mysqld-wait-stop
+install -m 755 mysqld-wait-stop ${RPM_BUILD_ROOT}%{_libexecdir}/
+
 mkdir -p $RPM_BUILD_ROOT%{?scl:%_root_prefix}%{!?scl:%_prefix}/lib/tmpfiles.d
 sed -e 's|/var/run/mysqld|%{?_scl_root}/var/run/mysqld|' <%{SOURCE10} >%{?scl_prefix}mariadb.conf
 install -m 0644 %{?scl_prefix}mariadb.conf $RPM_BUILD_ROOT%{?scl:%_root_prefix}%{!?scl:%_prefix}/lib/tmpfiles.d/%{?scl_prefix}mariadb.conf
@@ -681,6 +687,7 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
 %{_unitdir}/%{service_name}.service
 %{_libexecdir}/mysqld-prepare-db-dir
 %{_libexecdir}/mysqld-wait-ready
+%{_libexecdir}/mysqld-wait-stop
 %{?scl:%_root_prefix}%{!?scl:%_prefix}/lib/tmpfiles.d/%{?scl_prefix}mariadb.conf
 
 %attr(0755,mysql,mysql) %dir %{?_scl_root}/var/run/mysqld
@@ -712,6 +719,8 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
   Related: #1056457
 - Rebase to 5.5.36
   https://kb.askmonty.org/en/mariadb-5536-changelog/
+- Wait for daemon ends
+  Resolves: #1072958
 
 * Wed Feb 12 2014 Honza Horak <hhorak@redhat.com> 5.5.35-6
 - Rebase to 5.5.35

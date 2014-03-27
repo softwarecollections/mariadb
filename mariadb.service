@@ -32,6 +32,7 @@ ExecStartPre=/usr/libexec/mysqld-prepare-db-dir %n
 # per bug #547485
 ExecStart=/usr/bin/mysqld_safe --basedir=/usr
 ExecStartPost=/usr/libexec/mysqld-wait-ready $MAINPID
+ExecStopPost=/usr/libexec/mysqld-wait-stop
 
 # Give a reasonable amount of time for the server to start up/shut down
 TimeoutSec=300
