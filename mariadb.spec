@@ -6,7 +6,7 @@
 
 Name: %{?scl_prefix}mariadb
 Version: 5.5.36
-Release: 7%{?dist}
+Release: 8%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -714,6 +714,10 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Fri Mar 28 2014 Honza Horak <hhorak@redhat.com> - 5.5.36-8
+- Remove unnecessary perl provides
+  Related: #1042875
+
 * Thu Mar 27 2014 Honza Horak <hhorak@redhat.com> - 5.5.35-7
 - Use correct path to tmp dir
   Related: #1056457
