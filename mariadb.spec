@@ -5,8 +5,8 @@
 %bcond_with tokudb
 
 Name: %{?scl_prefix}mariadb
-Version: 5.5.36
-Release: 8%{?dist}
+Version: 5.5.37
+Release: 9%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -714,6 +714,13 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Thu Apr 17 2014 Honza Horak <hhorak@redhat.com> - 5.5.37-9
+- Update to MariaDB 5.5.37, for various fixes described at
+  https://kb.askmonty.org/en/mariadb-5537-changelog/
+  Includes fixes for: CVE-2014-2440 CVE-2014-0384 CVE-2014-2432
+  CVE-2014-2431 CVE-2014-2430 CVE-2014-2436 CVE-2014-2438 CVE-2014-2419
+  Resolves: #1089366
+
 * Fri Mar 28 2014 Honza Horak <hhorak@redhat.com> - 5.5.36-8
 - Remove unnecessary perl provides
   Related: #1042875
