@@ -6,7 +6,7 @@
 
 Name: %{?scl_prefix}mariadb
 Version: 5.5.40
-Release: 1%{?dist}
+Release: 10%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -713,7 +713,7 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
-* Thu Nov 06 2014 Honza Horak <hhorak@redhat.com> - 5.5.40-1
+* Thu Nov 06 2014 Honza Horak <hhorak@redhat.com> - 5.5.40-10
 - Rebase to 5.5.40
   https://kb.askmonty.org/en/mariadb-5540-changelog/
   Also fixes: CVE-2014-4274 CVE-2014-6507 CVE-2014-6520
