@@ -70,7 +70,7 @@ diff -up mariadb-5.5.36/scripts/mysql_install_db.sh.scl-env-check mariadb-5.5.36
    echo
 -  echo "    shell> $bindir/mysql -u root mysql"
 +  echo "    shell> scl enable __SCL_NAME__ -- $bindir/mysql -u root mysql"
-   echo "    mysql> show tables"
+   echo "    mysql> show tables;"
    echo
    echo "Try 'mysqld --help' if you have problems with paths.  Using"
 @@ -475,19 +481,15 @@ fi
