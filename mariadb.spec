@@ -5,8 +5,8 @@
 %bcond_with tokudb
 
 Name: %{?scl_prefix}mariadb
-Version: 5.5.37
-Release: 9%{?dist}
+Version: 5.5.40
+Release: 1%{?dist}
 
 Summary: A community developed branch of MySQL
 Group: Applications/Databases
@@ -426,9 +426,6 @@ install -m 0755 -d $RPM_BUILD_ROOT%{?_scl_root}/var/lib/mysql
 install -m 0755 -d $RPM_BUILD_ROOT/var/lib/mysql
 %endif
 
-# Fix funny permissions that cmake build scripts apply to config files
-chmod 644 ${RPM_BUILD_ROOT}%{_datadir}/mysql/config.*.ini
-
 # Fix scripts for multilib safety
 mv ${RPM_BUILD_ROOT}%{_bindir}/mysql_config ${RPM_BUILD_ROOT}%{_libdir}/mysql/mysql_config
 ln -sf %{_libdir}/mysql/mysql_config ${RPM_BUILD_ROOT}%{_bindir}/mysql_config
@@ -504,6 +501,7 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/INFO_BIN
 rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/INFO_SRC
 rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/INSTALL-BINARY
 rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/README
+rm -f ${RPM_BUILD_ROOT}%{_datadir}/doc/EXCEPTIONS-CLIENT
 
 # we don't care about scripts for solaris
 rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
@@ -525,7 +523,7 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
 %systemd_postun_with_restart %{service_name}.service
 
 %files
-%doc README COPYING COPYING.LESSER README.mysql-license
+%doc README COPYING COPYING.LESSER README.mysql-license EXCEPTIONS-CLIENT
 %doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
 %doc README.mysql-docs
 
@@ -561,8 +559,11 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
 %{_mandir}/man1/mysqlshow.1*
 %{_mandir}/man1/mysqlslap.1*
 %{_mandir}/man1/my_print_defaults.1*
-%{_mandir}/man1/mysql_fix_privilege_tables.1*
-%{_mandir}/man8/mysqlmanager.8*
+%{_mandir}/man1/aria_chk.1*
+%{_mandir}/man1/aria_dump_log.1*
+%{_mandir}/man1/aria_ftdump.1*
+%{_mandir}/man1/aria_pack.1*
+%{_mandir}/man1/aria_read_log.1*
 
 %{_libdir}/mysql/mysql_config
 %config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
@@ -664,7 +665,6 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
 %{_mandir}/man1/mysqld_safe.1*
 %{_mandir}/man1/mysqlhotcopy.1*
 %{_mandir}/man1/mysqlimport.1*
-%{_mandir}/man1/mysqlman.1*
 %{_mandir}/man1/mysql_setpermission.1*
 %{_mandir}/man1/mysqltest.1*
 %{_mandir}/man1/innochecksum.1*
@@ -682,7 +682,6 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
 %{_datadir}/mysql/mysql_test_data_timezone.sql
 %{_datadir}/mysql/mysql_performance_tables.sql
 %{_datadir}/mysql/my-*.cnf
-%{_datadir}/mysql/config.*.ini
 
 %{_unitdir}/%{service_name}.service
 %{_libexecdir}/mysqld-prepare-db-dir
@@ -714,6 +713,15 @@ rm -f ${RPM_BUILD_ROOT}%{_datadir}/mysql/solaris/postinstall-solaris
 %{_mandir}/man1/mysql_client_test.1*
 
 %changelog
+* Thu Nov 06 2014 Honza Horak <hhorak@redhat.com> - 5.5.40-1
+- Rebase to 5.5.40
+  https://kb.askmonty.org/en/mariadb-5540-changelog/
+  Also fixes: CVE-2014-4274 CVE-2014-6507 CVE-2014-6520
+  CVE-2014-6505 CVE-2014-4287 CVE-2014-6551 CVE-2014-6555 CVE-2014-6484
+  CVE-2014-6464 CVE-2014-6559 CVE-2014-6530 CVE-2014-6564 CVE-2014-6469
+  CVE-2014-6463
+  Resolves: #1160550
+
 * Thu Apr 17 2014 Honza Horak <hhorak@redhat.com> - 5.5.37-9
 - Update to MariaDB 5.5.37, for various fixes described at
   https://kb.askmonty.org/en/mariadb-5537-changelog/
