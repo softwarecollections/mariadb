@@ -1,8 +1,8 @@
-This is a short overview how mariadb55-mariadb-devel should be used.
+This is a short overview how mariadb100-mariadb-devel should be used.
 
 * General information
 
-Red Hat Software Collections contains the server part of MariaDB 5.5 database.
+Red Hat Software Collections contains the server part of MariaDB 10.0 database.
 The core Red Hat Enterprise Linux 6 provides version 5.1 of MySQL databases
 (client library and server daemon).
 
@@ -23,10 +23,10 @@ for more recent version of dynamic languages that are part of the Red Hat
 Software Collections.
 
 
-* How to build applications for MariaDB 5.5 from Red Hat Software Collection
+* How to build applications for MariaDB 10.0 from Red Hat Software Collection
 
-MariaDB 5.5 from Red Hat Software Collection does not include database
-connectors; client libraries packaged in the MariaDB 5.5 Red Hat Software
+MariaDB 10.0 from Red Hat Software Collection does not include database
+connectors; client libraries packaged in the MariaDB 10.0 Red Hat Software
 Collections database packages are not supposed to be used as they are included
 only for purposes of server utilities and the daemon. Users are instead
 expected to use the system libraries and database connectors provided by
@@ -34,10 +34,10 @@ MySQL 5.1 with the core system.
 
 It means that users who would like to link their application against MariaDB
 client library should compile and link it against MySQL 5.1 in the core
-Red Hat Enterprise Linux 6 environment, not in MariaDB 5.5 Red Hat Software
+Red Hat Enterprise Linux 6 environment, not in MariaDB 10.0 Red Hat Software
 Collections environment.
 
 The only exception to this are server-side plugins, which are expected
-to be built under MariaDB 5.5 Red Hat Software Collections environment,
-which means the build process should be run inside "scl enable mysql55 '...'"
+to be built under MariaDB 10.0 Red Hat Software Collections environment,
+which means the build process should be run inside "scl enable mysql100 '...'"
 call.
