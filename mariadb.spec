@@ -2,6 +2,7 @@
 %{?scl:%scl_package mariadb}
 %{!?scl:%global pkg_name %{name}}
 
+# Prefix that is used for patches
 %global pkgnamepatch mariadb
 
 # Regression tests may take a long time (many cores recommended), skip them by
@@ -12,7 +13,7 @@
 # In f20+ use unversioned docdirs, otherwise the old versioned one
 %{!?_pkgdocdir: %global _pkgdocdir %{_docdir}/%{name}-%{version}}
 
-# use Full RELRO for all binaries (RHBZ#1092548)
+# Use Full RELRO for all binaries (RHBZ#1092548)
 %global _hardened_build 1
 
 # By default, patch(1) creates backup files when chunks apply with offsets.
@@ -69,15 +70,13 @@
 %if 0%{?fedora} >= 15 || 0%{?rhel} >= 7
 %bcond_without init_systemd
 %bcond_with init_sysv
-%global daemon_name %{?scl_prefix}%{pkg_name}
-# Provide temporary service file name that will be removed after some time
-# (Fedora 22?)
-%{!?scl:%global mysqld_unit mysqld}
+%global daemon_default %{?scl_prefix}%{pkg_name}
 %else
 %bcond_with init_systemd
 %bcond_without init_sysv
-%global daemon_name %{?scl:%{?scl_prefix}%{pkg_name}}%{!?scl:mysqld}
+%global daemon_default %{?scl:%{?scl_prefix}%{pkg_name}}%{!?scl:mysqld}
 %endif
+%global daemon_name %{?scl_mariadb_daemonname}%{!?scl_mariadb_daemonname:%{daemon_default}}
 
 # MariaDB 10.0 and later requires pcre >= 8.35, otherwise we need to use
 # the bundled library, since the package cannot be build with older version
@@ -90,11 +89,11 @@
 # We define some system's well known locations here so we can use them easily
 # later when building to another location (like SCL)
 %global logrotateddir %{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/logrotate.d
-%global logfiledir %{_localstatedir}/log/%{daemon_name}
+%global logfiledir %{?scl_mariadb_logfiledir}%{!?scl_mariadb_logfiledir:%{_localstatedir}/log/%{daemon_name}}
 %global logfile %{logfiledir}/%{daemon_name}.log
-%if 0%{?fedora} >= 20
-%{!?scl:%global old_logfile %{_localstatedir}/log/mysqld.log}
-%endif
+
+# Defining where database data live
+%global dbdatadir %{?scl_mariadb_dbdatadir}%{!?scl_mariadb_dbdatadir:%{_localstatedir}/lib/mysql}
 
 # Home directory of mysql user should be same for all packages that create it
 %global mysqluserhome /var/lib/mysql
@@ -130,7 +129,7 @@
 
 Name:             %{?scl_pkg_name}%{?!scl_pkg_name:mariadb}
 Version:          %{compatver}.%{bugfixver}
-Release:          2%{?with_debug:.debug}%{?dist}
+Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -155,8 +154,6 @@ Source13:         mysql-wait-ready.sh
 Source14:         mysql-check-socket.sh
 Source15:         mysql-scripts-common.sh
 Source16:         mysql-check-upgrade.sh
-Source17:         mysql-compat.service.in
-Source18:         mysql-compat.conf.in
 Source19:         mysql.init.in
 Source50:         rh-skipped-tests-base.list
 Source51:         rh-skipped-tests-intel.list
@@ -182,7 +179,6 @@ Patch31:          %{pkgnamepatch}-string-overflow.patch
 Patch32:          %{pkgnamepatch}-basedir.patch
 Patch33:          %{pkgnamepatch}-covscan-signexpr.patch
 Patch34:          %{pkgnamepatch}-covscan-stroverflow.patch
-Patch35:          %{pkgnamepatch}-config.patch
 Patch36:          %{pkgnamepatch}-ssltest.patch
 
 # Patches specific for scl
@@ -534,7 +530,6 @@ MariaDB is a community developed branch of MySQL.
 %patch32 -p1
 %patch33 -p1
 %patch34 -p1
-%patch35 -p1
 %patch36 -p1
 
 # removing bundled cmd-line-utils
@@ -570,7 +565,7 @@ cat %{SOURCE55} >> mysql-test/rh-skipped-tests.list
 %endif
 
 cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} %{SOURCE13} \
-   %{SOURCE14} %{SOURCE15} %{SOURCE16} %{SOURCE17} %{SOURCE18} %{SOURCE19} \
+   %{SOURCE14} %{SOURCE15} %{SOURCE16} %{SOURCE19} \
    scripts
 
 %if 0%{?scl:1}
@@ -620,17 +615,12 @@ export LDFLAGS
          -DFEATURE_SET="community" \
          -DINSTALL_LAYOUT=RPM \
          -DDAEMON_NAME="%{daemon_name}" \
-%if 0%{?mysqld_unit:1}
-         -DDAEMON_NAME_COMPAT="%{mysqld_unit}" \
-%endif
 %if 0%{?scl:1}
          -DSCL_NAME="%{?scl}" \
          -DSCL_SCRIPTS="%{?_scl_scripts}" \
 %endif
          -DLOG_LOCATION="%{logfile}" \
-         -DLOG_LOCATION_COMPAT="%{old_logfile}" \
          -DPID_FILE_DIR="%{_localstatedir}/run/%{daemon_name}" \
-         -DPID_FILE_DIR_COMPAT="%{_localstatedir}/run/%{mysqld_unit}" \
          -DNICE_PROJECT_NAME="MariaDB" \
          -DRPM="%{?rhel:rhel%{rhel}}%{!?rhel:fedora%{fedora}}" \
          -DCMAKE_INSTALL_PREFIX="%{_prefix}" \
@@ -654,8 +644,8 @@ export LDFLAGS
          -DINSTALL_SCRIPTDIR=bin \
          -DINSTALL_SQLBENCHDIR=share \
          -DINSTALL_SUPPORTFILESDIR=share/%{name} \
-         -DMYSQL_DATADIR="%{_localstatedir}/lib/mysql" \
-         -DMYSQL_UNIX_ADDR="%{_localstatedir}/lib/mysql/mysql.sock" \
+         -DMYSQL_DATADIR="%{dbdatadir}" \
+         -DMYSQL_UNIX_ADDR="/var/lib/mysql/mysql.sock" \
          -DENABLED_LOCAL_INFILE=ON \
          -DENABLE_DTRACE=ON \
          -DWITH_EMBEDDED_SERVER=ON \
@@ -719,16 +709,12 @@ rm -rf %{buildroot}%{_pkgdocdir}/MariaDB-server-%{version}/
 mkdir -p %{buildroot}%{logfiledir}
 chmod 0750 %{buildroot}%{logfiledir}
 touch %{buildroot}%{logfile}
-%if 0%{?old_logfile:1}
-ln -s %{logfile} %{buildroot}%{old_logfile}
-%endif
 
 # current setting in my.cnf is to use /var/run/mariadb for creating pid file,
 # however since my.cnf is not updated by RPM if changed, we need to create mysqld
 # as well because users can have odd settings in their /etc/my.cnf
-%{?mysqld_unit:mkdir -p %{buildroot}%{_localstatedir}/run/%{mysqld_unit}}
 mkdir -p %{buildroot}%{_localstatedir}/run/%{daemon_name}
-install -p -m 0755 -d %{buildroot}%{_localstatedir}/lib/mysql
+install -p -m 0755 -d %{buildroot}%{dbdatadir}
 
 %if %{with config}
 install -D -p -m 0644 scripts/my.cnf %{buildroot}%{_sysconfdir}/my.cnf
@@ -741,13 +727,6 @@ rm -f %{buildroot}%{_sysconfdir}/my.cnf
 %if %{with init_systemd}
 install -D -p -m 644 scripts/mysql.service %{buildroot}%{_unitdir}/%{daemon_name}.service
 install -D -p -m 0644 scripts/mysql.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{name}.conf
-%endif
-
-# install alternative systemd unit file for compatibility reasons
-%if 0%{?mysqld_unit:1}
-install -p -m 644 scripts/mysql-compat.service %{buildroot}%{_unitdir}/%{mysqld_unit}.service
-mkdir -p %{buildroot}%{_unitdir}/%{daemon_name}.service.d
-install -p -m 644 scripts/mysql-compat.conf %{buildroot}%{_unitdir}/%{daemon_name}.service.d/mysql-compat.conf
 %endif
 
 # install SysV init script
@@ -958,7 +937,7 @@ if [ $1 = 1 ]; then
     /sbin/chkconfig --add %{daemon_name}
 fi
 %endif
-/bin/chmod 0755 %{_localstatedir}/lib/mysql
+/bin/chmod 0755 %{dbdatadir}
 
 %preun server
 %if %{with init_systemd}
@@ -1168,8 +1147,6 @@ fi
 %{?with_mroonga:%{_datadir}/%{name}/mroonga/uninstall.sql}
 %{_datadir}/%{name}/my-*.cnf
 
-%{?mysqld_unit:%{_unitdir}/%{mysqld_unit}.service}
-%{?mysqld_unit:%{_unitdir}/%{daemon_name}.service.d/mysql-compat.conf}
 %{?with_init_systemd:%{_unitdir}/%{daemon_name}.service}
 %{?with_init_sysv:%{_initddir}/%{daemon_name}}
 %{_libexecdir}/mysql-prepare-db-dir
@@ -1179,14 +1156,10 @@ fi
 %{_libexecdir}/mysql-scripts-common
 
 %{?with_init_systemd:%{_tmpfilesdir}/%{name}.conf}
-%{?mysqld_unit:%attr(0755,mysql,mysql) %dir %{_localstatedir}/run/%{mysqld_unit}}
 %attr(0755,mysql,mysql) %dir %{_localstatedir}/run/%{daemon_name}
-%attr(0755,mysql,mysql) %dir %{_localstatedir}/lib/mysql
+%attr(0755,mysql,mysql) %dir %{dbdatadir}
 %attr(0750,mysql,mysql) %dir %{logfiledir}
 %attr(0640,mysql,mysql) %config %ghost %verify(not md5 size mtime) %{logfile}
-%if 0%{?old_logfile:1}
-                        %config %ghost %verify(not md5 size mtime) %{old_logfile}
-%endif
 %config(noreplace) %{logrotateddir}/%{daemon_name}
 
 %if %{with oqgraph}
@@ -1238,6 +1211,10 @@ fi
 %endif
 
 %changelog
+* Fri Dec 05 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.15-3
+- Rework usage of macros and use macros defined in the meta package
+  Remove some compatibility artefacts
+
 * Fri Dec 05 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.15-2
 - Merging changes from Fedora and upgrading to 10.0.15
 
