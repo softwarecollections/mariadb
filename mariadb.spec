@@ -113,15 +113,6 @@
 %bcond_without conflicts
 %endif
 
-# When replacing mysql by mariadb these packages are not upated, but rather
-# installed and uninstalled. Thus we loose information about mysqld service
-# enablement. To address this we use a file to store that information within
-# the transaction. Basically the file is created when mysqld is enabled in
-# the beginning of the transaction and mysqld is enabled again in the end
-# of the transaction in case this flag file exists.
-%global mysqld_enabled_flag_file %{_localstatedir}/lib/rpm-state/mysqld_enabled
-%global mysqld_running_flag_file %{_localstatedir}/lib/rpm-state/mysqld_running
-
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.0
@@ -891,34 +882,6 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 /usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
 /usr/sbin/useradd -M -N -g mysql -o -r -d %{mysqluserhome} -s /sbin/nologin \
   -c "MySQL Server" -u 27 mysql >/dev/null 2>&1 || :
-
-%if %{with init_systemd}
-# Explicitly enable mysqld if it was enabled in the beginning
-# of the transaction. Otherwise mysqld is disabled always when
-# replacing mysql with mariadb, because it is not recognized
-# as updating, but rather as removal and install.
-if /bin/systemctl is-enabled mysqld.service >/dev/null 2>&1 ; then
-    touch %mysqld_enabled_flag_file >/dev/null 2>&1 || :
-fi
-
-# Since mysqld.service became a symlink to mariadb.service, turning off
-# the running mysqld service doesn't work fine (BZ#1002996). As a work-around
-# we explicitly stop mysqld before upgrade and start after it again.
-if [ ! -L %{_unitdir}/mysqld.service ] && /bin/systemctl is-active mysqld.service &>/dev/null ; then
-    touch %mysqld_running_flag_file >/dev/null 2>&1 || :
-    /bin/systemctl stop mysqld.service >/dev/null 2>&1 || :
-fi
-
-%posttrans server
-if [ -f %mysqld_enabled_flag_file ] ; then
-    /bin/systemctl enable %{daemon_name}.service >/dev/null 2>&1 || :
-    rm -f %mysqld_enabled_flag_file >/dev/null 2>&1 || :
-fi
-if [ -f %mysqld_running_flag_file ] ; then
-    /bin/systemctl start %{daemon_name}.service >/dev/null 2>&1 || :
-    rm -f %mysqld_running_flag_file >/dev/null 2>&1 || :
-fi
-%endif
 
 %if %{with clibrary}
 %post libs -p /sbin/ldconfig
