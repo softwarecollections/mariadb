@@ -40,7 +40,11 @@
 # The Open Query GRAPH engine (OQGRAPH) is a computation engine allowing
 # hierarchies and more complex graph structures to be handled in a relational
 # fashion; enabled by default
+%if 0%{?scl:1}
+%bcond_with oqgraph
+%else
 %bcond_without oqgraph
+%endif
 
 # For some use cases we do not need some parts of the package
 %bcond_without clibrary
