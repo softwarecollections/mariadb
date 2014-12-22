@@ -75,6 +75,9 @@
 %bcond_without init_systemd
 %bcond_with init_sysv
 %global daemon_default %{?scl_prefix}%{pkg_name}
+%if ! 0%{?scl:1}
+%global mysqld_pid_dir mysqld
+%endif
 %else
 %bcond_with init_systemd
 %bcond_without init_sysv
@@ -724,6 +727,9 @@ rm -f %{buildroot}%{_sysconfdir}/my.cnf
 %if %{with init_systemd}
 install -D -p -m 644 scripts/mysql.service %{buildroot}%{_unitdir}/%{daemon_name}.service
 install -D -p -m 0644 scripts/mysql.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{name}.conf
+%if 0%{?mysqld_pid_dir:1}
+echo "d %{_localstatedir}/run/%{mysqld_pid_dir} 0755 mysql mysql -" >>%{buildroot}%{_tmpfilesdir}/%{name}.conf
+%endif
 %endif
 
 # install SysV init script
@@ -1183,6 +1189,8 @@ fi
 * Fri Dec 05 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.15-3
 - Rework usage of macros and use macros defined in the meta package
   Remove some compatibility artefacts
+- Fix macros paths in my.cnf
+- Create old location for pid file if it remained in my.cnf
 
 * Fri Dec 05 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.15-2
 - Merging changes from Fedora and upgrading to 10.0.15
