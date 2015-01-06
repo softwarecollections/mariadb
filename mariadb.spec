@@ -127,7 +127,7 @@
 
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          3%{?with_debug:.debug}%{?dist}
+Release:          4%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1191,6 +1191,7 @@ fi
   Remove some compatibility artefacts
 - Fix macros paths in my.cnf
 - Create old location for pid file if it remained in my.cnf
+- Disable failing tests connect.mrr, connect.updelx2 on ppc and s390
 
 * Fri Dec 05 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.15-2
 - Merging changes from Fedora and upgrading to 10.0.15
