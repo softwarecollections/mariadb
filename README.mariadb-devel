@@ -1,4 +1,4 @@
-This is a short overview how mariadb100-mariadb-devel should be used.
+This is a short overview how rh-mariadb100-mariadb-devel should be used.
 
 * General information
 
@@ -39,5 +39,5 @@ Collections environment.
 
 The only exception to this are server-side plugins, which are expected
 to be built under MariaDB 10.0 Red Hat Software Collections environment,
-which means the build process should be run inside "scl enable mysql100 '...'"
+which means the build process should be run inside "scl enable rh-mysql100 '...'"
 call.
