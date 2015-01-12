@@ -122,7 +122,7 @@
 %global compatver 10.0
 %global bugfixver 15
 
-Name:             %{?scl_pkg_name}%{?!scl_pkg_name:mariadb}
+Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
 Release:          3%{?with_debug:.debug}%{?dist}
 Epoch:            1
@@ -177,7 +177,9 @@ Patch34:          %{pkgnamepatch}-covscan-stroverflow.patch
 Patch36:          %{pkgnamepatch}-ssltest.patch
 
 # Patches specific for scl
+%if 0%{?scl:1}
 Patch90:          %{pkgnamepatch}-scl-env-check.patch
+%endif
 
 BuildRequires:    cmake
 BuildRequires:    libaio-devel
