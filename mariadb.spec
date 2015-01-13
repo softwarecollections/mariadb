@@ -180,9 +180,7 @@ Patch34:          %{pkgnamepatch}-covscan-stroverflow.patch
 Patch36:          %{pkgnamepatch}-ssltest.patch
 
 # Patches specific for scl
-%if 0%{?scl:1}
 Patch90:          %{pkgnamepatch}-scl-env-check.patch
-%endif
 
 BuildRequires:    cmake
 BuildRequires:    libaio-devel
