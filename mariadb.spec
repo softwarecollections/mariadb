@@ -857,6 +857,39 @@ rm -rf %{buildroot}%{_datadir}/mysql-test
 rm -f %{buildroot}%{_mandir}/man1/mysql_client_test.1*
 %endif
 
+# prepare scripts for NFS registering and post scripts
+%global store_file() cp %{buildroot}%1 %{buildroot}%{_scl_scripts}/register.files%1
+%global restore_file() cp -n %{_scl_scripts}/register.files%1 %1
+
+# server package
+%store_file %{_initddir}/%{daemon_name}
+%store_file %{logrotateddir}/%{daemon_name}
+cat <<EOF >%{buildroot}%{_scl_scripts}/register.d/6-%{pkg_name}-server-files
+#!/bin/bash
+%restore_file %{_initddir}/%{daemon_name}
+%restore_file %{logrotateddir}/%{daemon_name}
+mkdir -m 0755 %{dbdatadir} && chown mysql:mysql %{dbdatadir}
+EOF
+cat <<EOF >%{buildroot}%{_scl_scripts}/register.d/7-%{pkg_name}-server-selinux
+#!/bin/bash
+restorecon %{dbdatadir} >/dev/null 2>&1 || :
+restorecon %{_initddir}/%{daemon_name} >/dev/null 2>&1 || :
+restorecon %{logrotateddir}/%{daemon_name} >/dev/null 2>&1 || :
+EOF
+
+%store_file %{_sysconfdir}/my.cnf
+cat <<EOF >%{buildroot}%{_scl_scripts}/register.d/5-%{pkg_name}-config-files
+#!/bin/bash
+%restore_file %{_sysconfdir}/my.cnf
+mkdir -p %{_sysconfdir}/my.cnf.d
+EOF
+
+%store_file %{_sysconfdir}/my.cnf.d/mysql-clients.cnf
+cat <<EOF >%{buildroot}%{_scl_scripts}/register.d/6-%{pkg_name}-client-files
+#!/bin/bash
+%restore_file %{_sysconfdir}/my.cnf.d/mysql-clients.cnf
+EOF
+
 %check
 %if %{with test}
 %if %runselftest
@@ -911,6 +944,7 @@ if [ $1 = 1 ]; then
 fi
 %endif
 /bin/chmod 0755 %{dbdatadir}
+%{_scl_scripts}/register.d/6-%{pkg_name}-server-selinux
 
 %preun server
 %if %{with init_systemd}
@@ -972,6 +1006,8 @@ fi
 %{_mandir}/man1/mysqlshow.1*
 %{_mandir}/man1/mysqlslap.1*
 %{_mandir}/man1/my_print_defaults.1*
+
+%attr(0755,root,root) %{_scl_scripts}/register.d/6-%{pkg_name}-files
 %endif
 
 %if %{with clibrary}
@@ -991,6 +1027,7 @@ fi
 %config(noreplace) %{_sysconfdir}/my.cnf
 %dir %{_sysconfdir}/my.cnf.d
 %config(noreplace) %{_sysconfdir}/my.cnf.d/mysql-clients.cnf
+%attr(0755,root,root) %{_scl_scripts}/register.d/5-%{pkg_name}-config-files
 %endif
 
 %if %{with common}
@@ -1134,6 +1171,9 @@ fi
 %attr(0750,mysql,mysql) %dir %{logfiledir}
 %attr(0640,mysql,mysql) %config %ghost %verify(not md5 size mtime) %{logfile}
 %config(noreplace) %{logrotateddir}/%{daemon_name}
+
+%attr(0755,root,root) %{_scl_scripts}/register.d/6-%{pkg_name}-server-files
+%attr(0755,root,root) %{_scl_scripts}/register.d/6-%{pkg_name}-server-selinux
 
 %if %{with oqgraph}
 %files oqgraph-engine
