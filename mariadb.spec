@@ -47,7 +47,6 @@
 %endif
 
 # For some use cases we do not need some parts of the package
-%bcond_without clibrary
 %bcond_without devel
 %bcond_without client
 %bcond_without common
@@ -58,7 +57,9 @@
 
 %if 0%{?scl:1}
 %bcond_with embedded
+%bcond_with clibrary
 %else
+%bcond_without clibrary
 %bcond_without embedded
 %endif
 
@@ -869,6 +870,8 @@ cat <<EOF >%{buildroot}%{_scl_scripts}/register.d/6-%{pkg_name}-server-files
 %restore_file %{_initddir}/%{daemon_name}
 %restore_file %{logrotateddir}/%{daemon_name}
 mkdir -m 0755 %{dbdatadir} && chown mysql:mysql %{dbdatadir}
+mkdir -p %{logfiledir} && chmod 0750 %{logfiledir} && chown mysql:mysql %{logfiledir}
+touch %{logfile} && chown mysql:mysql %{logfile}
 EOF
 cat <<EOF >%{buildroot}%{_scl_scripts}/register.d/7-%{pkg_name}-server-selinux
 #!/bin/bash
