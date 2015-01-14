@@ -896,7 +896,8 @@ EOF
 %check
 %if %{with test}
 %if %runselftest
-make test VERBOSE=1
+# hack for https://mariadb.atlassian.net/browse/MDEV-7454
+%{?with_init_sysv:LD_LIBRARY_PATH=$(pwd)/unittest/mytap }make test VERBOSE=1
 # hack to let 32- and 64-bit tests run concurrently on same build machine
 export MTR_PARALLEL=1
 # builds might happen at the same host, avoid collision
