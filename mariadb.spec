@@ -775,8 +775,10 @@ mkdir -p %{buildroot}%{logrotateddir}
 mv %{buildroot}%{_datadir}/%{name}/mysql-log-rotate %{buildroot}%{logrotateddir}/%{daemon_name}
 chmod 644 %{buildroot}%{logrotateddir}/%{daemon_name}
 
+%if 0%{?scl:1}
 mkdir -p %{buildroot}%{_sysconfdir}/ld.so.conf.d
 echo "%{_libdir}/mysql" > %{buildroot}%{_sysconfdir}/ld.so.conf.d/%{name}-%{_arch}.conf
+%endif
 
 # copy additional docs into build tree so %%doc will find them
 install -p -m 0644 %{SOURCE5} %{basename:%{SOURCE5}}
@@ -832,6 +834,10 @@ mysqldump,mysqlimport,mysqlshow,mysqlslap,my_print_defaults}.1*
 rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/connect.cnf
 %endif
 
+%if %{without oqgraph}
+rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/oqgraph.cnf
+%endif
+
 %if %{without config}
 rm -f %{buildroot}%{_sysconfdir}/my.cnf
 rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
@@ -858,26 +864,30 @@ rm -rf %{buildroot}%{_datadir}/mysql-test
 rm -f %{buildroot}%{_mandir}/man1/mysql_client_test.1*
 %endif
 
+%if 0%{?scl:1}
 # prepare scripts for NFS registering and post scripts
-%global store_file() mkdir -p $(dirname %{buildroot}%{_scl_scripts}/register.files%1) && cp %{buildroot}%1 %{buildroot}%{_scl_scripts}/register.files%1
-%global restore_file() mkdir -p $(dirname %1) && cp -n %{_scl_scripts}/register.files%1 %1
+%global store_file() mkdir -p $(dirname %{buildroot}%{_scl_scripts}/register.files%1) ; cp %{buildroot}%1 %{buildroot}%{_scl_scripts}/register.files%1
+%global restore_file() mkdir -p $(dirname %1) ; cp -n %{_scl_scripts}/register.files%1 %1
 
 # store files that are outside /opt for server package
 mkdir -p %{buildroot}%{_scl_scripts}/register.d
-%{with_init_sysv: %store_file %{_initddir}/%{daemon_name}}
-%{with_init_systemd: %store_file %{_unitdir}/%{daemon_name}.service}
-%store_file %{logrotateddir}/%{daemon_name}
-%store_file %{_sysconfdir}/my.cnf.d/server.cnf
+%{?with_init_sysv: %{store_file %{_initddir}/%{daemon_name}}}
+%{?with_init_systemd: %{store_file %{_unitdir}/%{daemon_name}.service}}
+%{?with_init_systemd: %{store_file %{_tmpfilesdir}/%{name}.conf}}
+%{store_file %{logrotateddir}/%{daemon_name}}
+%{store_file %{_sysconfdir}/my.cnf.d/server.cnf}
 
 # create script that restores files for -server subpackage
 cat <<EOF >%{buildroot}%{_scl_scripts}/register.d/6-%{pkg_name}-server-files
 #!/bin/bash
-%{with_init_sysv: %restore_file %{_initddir}/%{daemon_name}}
-%{with_init_systemd: %restore_file %{_unitdir}/%{daemon_name}.service}
-%restore_file %{logrotateddir}/%{daemon_name}
-%restore_file %{_sysconfdir}/my.cnf.d/server.cnf
-mkdir -m 0755 %{dbdatadir} && chown mysql:mysql %{dbdatadir}
-mkdir -p %{logfiledir} && chmod 0750 %{logfiledir} && chown mysql:mysql %{logfiledir}
+%{?with_init_sysv: %{restore_file %{_initddir}/%{daemon_name}}}
+%{?with_init_systemd: %{restore_file %{_unitdir}/%{daemon_name}.service}}
+%{?with_init_systemd: %{restore_file %{_tmpfilesdir}/%{name}.conf}}
+%{restore_file %{logrotateddir}/%{daemon_name}}
+%{restore_file %{_sysconfdir}/my.cnf.d/server.cnf}
+mkdir -p -m 0755 %{dbdatadir} && chown mysql:mysql %{dbdatadir}
+mkdir -p -m 0755 %{_localstatedir}/run/%{daemon_name} && chown mysql:mysql %{_localstatedir}/run/%{daemon_name}
+mkdir -p -m 0750 %{logfiledir} && chown mysql:mysql %{logfiledir}
 touch %{logfile} && chown mysql:mysql %{logfile}
 EOF
 
@@ -885,25 +895,26 @@ EOF
 cat <<EOF >%{buildroot}%{_scl_scripts}/register.d/7-%{pkg_name}-server-selinux
 #!/bin/bash
 restorecon %{dbdatadir} >/dev/null 2>&1 || :
-%{with_init_sysv: restorecon %{_initddir}/%{daemon_name} >/dev/null 2>&1 || :}
-%{with_init_systemd: restorecon  %{_unitdir}/%{daemon_name}.service >/dev/null 2>&1 || :}
-restorecon %{logrotateddir}/%{daemon_name} >/dev/nuserverrestorecon -r %{logfiledir} >/dev/null 2>&1 || :
+%{?with_init_sysv: restorecon %{_initddir}/%{daemon_name} >/dev/null 2>&1 || :}
+%{?with_init_systemd: restorecon  %{_unitdir}/%{daemon_name}.service >/dev/null 2>&1 || :}
+restorecon %{logrotateddir}/%{daemon_name} >/dev/null 2>&1 || :
+restorecon -r %{logfiledir} >/dev/null 2>&1 || :
 EOF
 
-%if %{with client}
-%store_file %{_sysconfdir}/my.cnf.d/client.cnf
+%if %{with clibrary}
+%{store_file %{_sysconfdir}/my.cnf.d/client.cnf}
 cat <<EOF >%{buildroot}%{_scl_scripts}/register.d/6-%{pkg_name}-client-files
 #!/bin/bash
-%restore_file %{_sysconfdir}/my.cnf.d/client.cnf
+%{restore_file %{_sysconfdir}/my.cnf.d/client.cnf}
 EOF
 %endif
 
-
+%if %{with config}
 # handle register files and script for -config subpackage
-%store_file %{_sysconfdir}/my.cnf
+%{store_file %{_sysconfdir}/my.cnf}
 cat <<EOF >%{buildroot}%{_scl_scripts}/register.d/5-%{pkg_name}-config-files
 #!/bin/bash
-%restore_file %{_sysconfdir}/my.cnf
+%{restore_file %{_sysconfdir}/my.cnf}
 mkdir -p %{_sysconfdir}/my.cnf.d
 EOF
 
@@ -913,6 +924,8 @@ cat <<EOF >%{buildroot}%{_scl_scripts}/register.d/6-%{pkg_name}-client-files
 #!/bin/bash
 %restore_file %{_sysconfdir}/my.cnf.d/mysql-clients.cnf
 EOF
+%endif #with config
+%endif #scl
 
 %check
 %if %{with test}
@@ -969,7 +982,7 @@ if [ $1 = 1 ]; then
 fi
 %endif
 /bin/chmod 0755 %{dbdatadir}
-%{_scl_scripts}/register.d/7-%{pkg_name}-server-selinux
+%{?scl:%{_scl_scripts}/register.d/7-%{pkg_name}-server-selinux}
 
 %preun server
 %if %{with init_systemd}
@@ -1041,7 +1054,7 @@ fi
 %{_libdir}/mysql/libmysqlclient.so.*
 %{_libdir}/mysql/plugin/dialog.so
 %{_libdir}/mysql/plugin/mysql_clear_password.so
-%{_sysconfdir}/ld.so.conf.d/*
+%{!?scl:%{_sysconfdir}/ld.so.conf.d/*}
 %config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
 %endif
 
@@ -1050,7 +1063,9 @@ fi
 # although the default my.cnf contains only server settings, we put it in the
 # common package because it can be used for client settings too.
 %config(noreplace) %{_sysconfdir}/my.cnf
+%{?scl: %config(noreplace) %{_scl_scripts}/register.files%{_sysconfdir}/my.cnf}
 %dir %{_sysconfdir}/my.cnf.d
+%{?scl: %config(noreplace) %{_scl_scripts}/register.files%{_sysconfdir}/my.cnf.d/mysql-clients.cnf}
 %config(noreplace) %{_sysconfdir}/my.cnf.d/mysql-clients.cnf
 %attr(0755,root,root) %{_scl_scripts}/register.d/5-%{pkg_name}-config-files
 %endif
@@ -1125,6 +1140,7 @@ fi
 %{?with_tokudb:%{_bindir}/tokuftdump}
 
 %config(noreplace) %{_sysconfdir}/my.cnf.d/server.cnf
+%{?scl: %config(noreplace) %{_scl_scripts}/register.files/%{_sysconfdir}/my.cnf.d/server.cnf}
 %{?with_tokudb:%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf}
 
 %{_libexecdir}/mysqld
@@ -1182,7 +1198,9 @@ fi
 %{?with_mroonga:%{_datadir}/%{name}/mroonga/uninstall.sql}
 %{_datadir}/%{name}/my-*.cnf
 
+%{?scl:%{?with_init_systemd:%{_scl_scripts}/register.files%{_unitdir}/%{daemon_name}.service}}
 %{?with_init_systemd:%{_unitdir}/%{daemon_name}.service}
+%{?scl:%{?with_init_sysv:%{_scl_scripts}/register.files%{_initddir}/%{daemon_name}}}
 %{?with_init_sysv:%{_initddir}/%{daemon_name}}
 %{_libexecdir}/mysql-prepare-db-dir
 %{_libexecdir}/mysql-wait-ready
@@ -1191,11 +1209,13 @@ fi
 %{_libexecdir}/mysql-scripts-common
 
 %{?with_init_systemd:%{_tmpfilesdir}/%{name}.conf}
+%{?scl:%{?with_init_systemd:%{_scl_scripts}/register.files%{_tmpfilesdir}/%{name}.conf}}
 %attr(0755,mysql,mysql) %dir %{_localstatedir}/run/%{daemon_name}
 %attr(0755,mysql,mysql) %dir %{dbdatadir}
 %attr(0750,mysql,mysql) %dir %{logfiledir}
 %attr(0640,mysql,mysql) %config %ghost %verify(not md5 size mtime) %{logfile}
 %config(noreplace) %{logrotateddir}/%{daemon_name}
+%{?scl: %config(noreplace) %{_scl_scripts}/register.files%{logrotateddir}/%{daemon_name}}
 
 %attr(0755,root,root) %{_scl_scripts}/register.d/6-%{pkg_name}-server-files
 %attr(0755,root,root) %{_scl_scripts}/register.d/7-%{pkg_name}-server-selinux
