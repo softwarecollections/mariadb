@@ -859,14 +859,17 @@ rm -f %{buildroot}%{_mandir}/man1/mysql_client_test.1*
 %endif
 
 # prepare scripts for NFS registering and post scripts
-%global store_file() cp %{buildroot}%1 %{buildroot}%{_scl_scripts}/register.files%1
-%global restore_file() cp -n %{_scl_scripts}/register.files%1 %1
+%global store_file() mkdir -p $(dirname %{buildroot}%{_scl_scripts}/register.files%1) && cp %{buildroot}%1 %{buildroot}%{_scl_scripts}/register.files%1
+%global restore_file() mkdir -p $(dirname %1) && cp -n %{_scl_scripts}/register.files%1 %1
 
-# server package
+# store files that are outside /opt for server package
+mkdir -p %{buildroot}%{_scl_scripts}/register.d
 %{with_init_sysv: %store_file %{_initddir}/%{daemon_name}}
 %{with_init_systemd: %store_file %{_unitdir}/%{daemon_name}.service}
 %store_file %{logrotateddir}/%{daemon_name}
 %store_file %{_sysconfdir}/my.cnf.d/server.cnf
+
+# create script that restores files for -server subpackage
 cat <<EOF >%{buildroot}%{_scl_scripts}/register.d/6-%{pkg_name}-server-files
 #!/bin/bash
 %{with_init_sysv: %restore_file %{_initddir}/%{daemon_name}}
@@ -877,6 +880,8 @@ mkdir -m 0755 %{dbdatadir} && chown mysql:mysql %{dbdatadir}
 mkdir -p %{logfiledir} && chmod 0750 %{logfiledir} && chown mysql:mysql %{logfiledir}
 touch %{logfile} && chown mysql:mysql %{logfile}
 EOF
+
+# create script that sets propper context for files in -server subpackage
 cat <<EOF >%{buildroot}%{_scl_scripts}/register.d/7-%{pkg_name}-server-selinux
 #!/bin/bash
 restorecon %{dbdatadir} >/dev/null 2>&1 || :
@@ -894,6 +899,7 @@ EOF
 %endif
 
 
+# handle register files and script for -config subpackage
 %store_file %{_sysconfdir}/my.cnf
 cat <<EOF >%{buildroot}%{_scl_scripts}/register.d/5-%{pkg_name}-config-files
 #!/bin/bash
@@ -901,6 +907,7 @@ cat <<EOF >%{buildroot}%{_scl_scripts}/register.d/5-%{pkg_name}-config-files
 mkdir -p %{_sysconfdir}/my.cnf.d
 EOF
 
+# handle register files and script for -client subpackage
 %store_file %{_sysconfdir}/my.cnf.d/mysql-clients.cnf
 cat <<EOF >%{buildroot}%{_scl_scripts}/register.d/6-%{pkg_name}-client-files
 #!/bin/bash
@@ -910,7 +917,8 @@ EOF
 %check
 %if %{with test}
 %if %runselftest
-make test VERBOSE=1
+# hack for https://mariadb.atlassian.net/browse/MDEV-7454
+%{?with_init_sysv:LD_LIBRARY_PATH=$(pwd)/unittest/mytap }make test VERBOSE=1
 # hack to let 32- and 64-bit tests run concurrently on same build machine
 export MTR_PARALLEL=1
 # builds might happen at the same host, avoid collision
@@ -961,7 +969,7 @@ if [ $1 = 1 ]; then
 fi
 %endif
 /bin/chmod 0755 %{dbdatadir}
-%{_scl_scripts}/register.d/6-%{pkg_name}-server-selinux
+%{_scl_scripts}/register.d/7-%{pkg_name}-server-selinux
 
 %preun server
 %if %{with init_systemd}
@@ -1024,7 +1032,7 @@ fi
 %{_mandir}/man1/mysqlslap.1*
 %{_mandir}/man1/my_print_defaults.1*
 
-%attr(0755,root,root) %{_scl_scripts}/register.d/6-%{pkg_name}-files
+%attr(0755,root,root) %{_scl_scripts}/register.d/6-%{pkg_name}-client-files
 %endif
 
 %if %{with clibrary}
@@ -1133,11 +1141,11 @@ fi
 %exclude %{_libdir}/mysql/plugin/dialog.so
 %exclude %{_libdir}/mysql/plugin/mysql_clear_password.so
 
-%{_mandir}/man1/aria_chk.1.gz
-%{_mandir}/man1/aria_dump_log.1.gz
-%{_mandir}/man1/aria_ftdump.1.gz
-%{_mandir}/man1/aria_pack.1.gz
-%{_mandir}/man1/aria_read_log.1.gz
+%{_mandir}/man1/aria_chk.1*
+%{_mandir}/man1/aria_dump_log.1*
+%{_mandir}/man1/aria_ftdump.1*
+%{_mandir}/man1/aria_pack.1*
+%{_mandir}/man1/aria_read_log.1*
 %{_mandir}/man1/myisamchk.1*
 %{_mandir}/man1/myisamlog.1*
 %{_mandir}/man1/myisampack.1*
@@ -1190,7 +1198,7 @@ fi
 %config(noreplace) %{logrotateddir}/%{daemon_name}
 
 %attr(0755,root,root) %{_scl_scripts}/register.d/6-%{pkg_name}-server-files
-%attr(0755,root,root) %{_scl_scripts}/register.d/6-%{pkg_name}-server-selinux
+%attr(0755,root,root) %{_scl_scripts}/register.d/7-%{pkg_name}-server-selinux
 
 %if %{with oqgraph}
 %files oqgraph-engine
