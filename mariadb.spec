@@ -863,12 +863,16 @@ rm -f %{buildroot}%{_mandir}/man1/mysql_client_test.1*
 %global restore_file() cp -n %{_scl_scripts}/register.files%1 %1
 
 # server package
-%store_file %{_initddir}/%{daemon_name}
+%{with_init_sysv: %store_file %{_initddir}/%{daemon_name}}
+%{with_init_systemd: %store_file %{_unitdir}/%{daemon_name}.service}
 %store_file %{logrotateddir}/%{daemon_name}
+%store_file %{_sysconfdir}/my.cnf.d/server.cnf
 cat <<EOF >%{buildroot}%{_scl_scripts}/register.d/6-%{pkg_name}-server-files
 #!/bin/bash
-%restore_file %{_initddir}/%{daemon_name}
+%{with_init_sysv: %restore_file %{_initddir}/%{daemon_name}}
+%{with_init_systemd: %restore_file %{_unitdir}/%{daemon_name}.service}
 %restore_file %{logrotateddir}/%{daemon_name}
+%restore_file %{_sysconfdir}/my.cnf.d/server.cnf
 mkdir -m 0755 %{dbdatadir} && chown mysql:mysql %{dbdatadir}
 mkdir -p %{logfiledir} && chmod 0750 %{logfiledir} && chown mysql:mysql %{logfiledir}
 touch %{logfile} && chown mysql:mysql %{logfile}
@@ -876,9 +880,19 @@ EOF
 cat <<EOF >%{buildroot}%{_scl_scripts}/register.d/7-%{pkg_name}-server-selinux
 #!/bin/bash
 restorecon %{dbdatadir} >/dev/null 2>&1 || :
-restorecon %{_initddir}/%{daemon_name} >/dev/null 2>&1 || :
-restorecon %{logrotateddir}/%{daemon_name} >/dev/null 2>&1 || :
+%{with_init_sysv: restorecon %{_initddir}/%{daemon_name} >/dev/null 2>&1 || :}
+%{with_init_systemd: restorecon  %{_unitdir}/%{daemon_name}.service >/dev/null 2>&1 || :}
+restorecon %{logrotateddir}/%{daemon_name} >/dev/nuserverrestorecon -r %{logfiledir} >/dev/null 2>&1 || :
 EOF
+
+%if %{with client}
+%store_file %{_sysconfdir}/my.cnf.d/client.cnf
+cat <<EOF >%{buildroot}%{_scl_scripts}/register.d/6-%{pkg_name}-client-files
+#!/bin/bash
+%restore_file %{_sysconfdir}/my.cnf.d/client.cnf
+EOF
+%endif
+
 
 %store_file %{_sysconfdir}/my.cnf
 cat <<EOF >%{buildroot}%{_scl_scripts}/register.d/5-%{pkg_name}-config-files
