@@ -1052,8 +1052,6 @@ fi
 %{_mandir}/man1/mysqlshow.1*
 %{_mandir}/man1/mysqlslap.1*
 %{_mandir}/man1/my_print_defaults.1*
-
-%attr(0755,root,root) %{_scl_scripts}/register.d/6-%{pkg_name}-client-files
 %endif
 
 %if %{with clibrary}
@@ -1064,6 +1062,8 @@ fi
 %{_libdir}/mysql/plugin/mysql_clear_password.so
 %{!?scl:%{_sysconfdir}/ld.so.conf.d/*}
 %config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
+%{?scl: %config(noreplace) %{_scl_scripts}/register.files%{_sysconfdir}/my.cnf.d/client.cnf}
+%{?scl: %attr(0755,root,root) %{_scl_scripts}/register.d/6-%{pkg_name}-client-files}
 %endif
 
 %if %{with config}
@@ -1075,7 +1075,7 @@ fi
 %dir %{_sysconfdir}/my.cnf.d
 %{?scl: %config(noreplace) %{_scl_scripts}/register.files%{_sysconfdir}/my.cnf.d/mysql-clients.cnf}
 %config(noreplace) %{_sysconfdir}/my.cnf.d/mysql-clients.cnf
-%attr(0755,root,root) %{_scl_scripts}/register.d/5-%{pkg_name}-config-files
+%{?scl: %attr(0755,root,root) %{_scl_scripts}/register.d/5-%{pkg_name}-config-files}
 %endif
 
 %if %{with common}
@@ -1225,8 +1225,8 @@ fi
 %config(noreplace) %{logrotateddir}/%{daemon_name}
 %{?scl: %config(noreplace) %{_scl_scripts}/register.files%{logrotateddir}/%{daemon_name}}
 
-%attr(0755,root,root) %{_scl_scripts}/register.d/6-%{pkg_name}-server-files
-%attr(0755,root,root) %{_scl_scripts}/register.d/7-%{pkg_name}-server-selinux
+%{?scl: %attr(0755,root,root) %{_scl_scripts}/register.d/6-%{pkg_name}-server-files}
+%{?scl: %attr(0755,root,root) %{_scl_scripts}/register.d/7-%{pkg_name}-server-selinux}
 
 %{?scl:%config(noreplace) %{?_scl_scripts}/service-environment}
 
