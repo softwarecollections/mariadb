@@ -126,9 +126,13 @@
 %global compatver 10.0
 %global bugfixver 15
 
+%if 0%{?scl:1}
+%global scl_upper %{lua:print(string.upper(string.gsub(rpm.expand("%{scl}"), "-", "_")))}
+%endif
+
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          5%{?with_debug:.debug}%{?dist}
+Release:          6%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -616,6 +620,7 @@ export LDFLAGS
          -DDAEMON_NAME="%{daemon_name}" \
 %if 0%{?scl:1}
          -DSCL_NAME="%{?scl}" \
+         -DSCL_NAME_UPPER="%{?scl_upper}" \
          -DSCL_SCRIPTS="%{?_scl_scripts}" \
 %endif
          -DLOG_LOCATION="%{logfile}" \
@@ -927,6 +932,19 @@ EOF
 %endif #with config
 %endif #scl
 
+%if 0%{?scl:1}
+# generate a configuration file for daemon
+cat >> %{buildroot}%{?_scl_scripts}/service-environment << EOF
+# Services are started in a fresh environment without any influence of user's
+# environment (like environment variable values). As a consequence,
+# information of all enabled collections will be lost during service start up.
+# If user needs to run a service under any software collection enabled, this
+# collection has to be written into %{scl_upper}_SCLS_ENABLED variable 
+# in %{?_scl_scripts}/service-environment.
+%{scl_upper}_SCLS_ENABLED="%{scl}"
+EOF
+%endif #scl
+
 %check
 %if %{with test}
 %if %runselftest
@@ -1220,6 +1238,8 @@ fi
 %attr(0755,root,root) %{_scl_scripts}/register.d/6-%{pkg_name}-server-files
 %attr(0755,root,root) %{_scl_scripts}/register.d/7-%{pkg_name}-server-selinux
 
+%{?scl:%config(noreplace) %{?_scl_scripts}/service-environment}
+
 %if %{with oqgraph}
 %files oqgraph-engine
 %config(noreplace) %{_sysconfdir}/my.cnf.d/oqgraph.cnf
@@ -1269,6 +1289,9 @@ fi
 %endif
 
 %changelog
+* Fri Jan 16 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-6
+- Move service-environment into mariadb package
+
 * Fri Jan 16 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-5
 - Implement scl register functionality
 
