@@ -128,7 +128,7 @@
 
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          4%{?with_debug:.debug}%{?dist}
+Release:          5%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1269,6 +1269,9 @@ fi
 %endif
 
 %changelog
+* Fri Jan 16 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-5
+- Implement scl register functionality
+
 * Fri Dec 05 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.15-3
 - Rework usage of macros and use macros defined in the meta package
   Remove some compatibility artefacts
