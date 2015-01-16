@@ -843,11 +843,6 @@ rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/connect.cnf
 rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/oqgraph.cnf
 %endif
 
-%if %{without config}
-rm -f %{buildroot}%{_sysconfdir}/my.cnf
-rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
-%endif
-
 %if %{without common}
 rm -rf %{buildroot}%{_datadir}/%{name}/charsets
 %endif
@@ -917,17 +912,12 @@ EOF
 %if %{with config}
 # handle register files and script for -config subpackage
 %{store_file %{_sysconfdir}/my.cnf}
+%{store_file %{_sysconfdir}/my.cnf.d/mysql-clients.cnf}
 cat <<EOF >%{buildroot}%{_scl_scripts}/register.d/5-%{pkg_name}-config-files
 #!/bin/bash
 %{restore_file %{_sysconfdir}/my.cnf}
+%{restore_file %{_sysconfdir}/my.cnf.d/mysql-clients.cnf}
 mkdir -p %{_sysconfdir}/my.cnf.d
-EOF
-
-# handle register files and script for -client subpackage
-%store_file %{_sysconfdir}/my.cnf.d/mysql-clients.cnf
-cat <<EOF >%{buildroot}%{_scl_scripts}/register.d/6-%{pkg_name}-client-files
-#!/bin/bash
-%restore_file %{_sysconfdir}/my.cnf.d/mysql-clients.cnf
 EOF
 %endif #with config
 %endif #scl
