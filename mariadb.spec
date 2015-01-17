@@ -981,6 +981,7 @@ if [ $1 = 1 ]; then
     /sbin/chkconfig --add %{daemon_name}
 fi
 %endif
+/bin/touch %{logfile}
 /bin/chmod 0755 %{dbdatadir}
 %{?scl:%{_scl_scripts}/register.d/*.%{pkg_name}-server.selinux-set}
 %{?scl:%{_scl_scripts}/register.d/*.%{pkg_name}-server.selinux-restore}
