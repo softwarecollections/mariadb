@@ -1048,8 +1048,10 @@ fi
 %config(noreplace) %{_sysconfdir}/my.cnf
 %config(noreplace) %{_sysconfdir}/my.cnf.d/mysql-clients.cnf
 %{?scl: %config(noreplace) %{_scl_scripts}/register.content%{_sysconfdir}/my.cnf}
+%{?scl: %dir %{_scl_scripts}/register.content%{_sysconfdir}/my.cnf.d}
 %{?scl: %config(noreplace) %{_scl_scripts}/register.content%{_sysconfdir}/my.cnf.d/mysql-clients.cnf}
 %{?scl: %{_scl_scripts}/register.d/*.%{pkg_name}-config.*}
+%{?scl: %{_scl_scripts}/unregister.d/*.%{pkg_name}-config.*}
 %endif
 
 %if %{with common}
@@ -1181,7 +1183,7 @@ fi
 %{?with_mroonga:%{_datadir}/%{name}/mroonga/uninstall.sql}
 %{_datadir}/%{name}/my-*.cnf
 
-%{?scl:%{_scl_scripts}/register.content%{daemondir}/%{daemon_name}*}
+%{?scl:%{_scl_scripts}/register.content%{daemondir}}
 %{daemondir}/%{daemon_name}*
 %{_libexecdir}/mysql-prepare-db-dir
 %{_libexecdir}/mysql-wait-ready
@@ -1190,15 +1192,17 @@ fi
 %{_libexecdir}/mysql-scripts-common
 
 %{?with_init_systemd:%{_tmpfilesdir}/%{name}.conf}
-%{?scl:%{?with_init_systemd:%{_scl_scripts}/register.content%{_tmpfilesdir}/%{name}.conf}}
+%{?scl:%{?with_init_systemd:%{_scl_scripts}/register.content%{_tmpfilesdir}}}
 %attr(0755,mysql,mysql) %dir %{_localstatedir}/run/%{daemon_name}
 %attr(0755,mysql,mysql) %dir %{dbdatadir}
 %attr(0750,mysql,mysql) %dir %{logfiledir}
 %attr(0640,mysql,mysql) %config %ghost %verify(not md5 size mtime) %{logfile}
 %config(noreplace) %{logrotateddir}/%{daemon_name}
 %{?scl: %config(noreplace) %{_scl_scripts}/register.content%{logrotateddir}/%{daemon_name}}
+%{?scl: %dir %{_scl_scripts}/register.content%{logrotateddir}}
 
 %{?scl: %{_scl_scripts}/register.d/*.%{pkg_name}-server.*}
+%{?scl: %{_scl_scripts}/unregister.d/*.%{pkg_name}-server.*}
 
 %if %{with oqgraph}
 %files oqgraph-engine
