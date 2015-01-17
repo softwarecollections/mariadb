@@ -53,14 +53,15 @@
 %bcond_without errmsg
 %bcond_without bench
 %bcond_without test
-%bcond_without connect
 
 %if 0%{?scl:1}
 %bcond_with embedded
 %bcond_with clibrary
+%bcond_with connect
 %else
 %bcond_without clibrary
 %bcond_without embedded
+%bcond_without connect
 %endif
 
 # When there is already another package that ships /etc/my.cnf,
@@ -142,7 +143,7 @@
 
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          5%{?with_debug:.debug}%{?dist}
+Release:          6%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1244,6 +1245,9 @@ fi
 %endif
 
 %changelog
+* Sat Jan 17 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-6
+- Do not package connect plugin for scl
+
 * Sat Jan 17 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-5
 - Rework register implementation
 
