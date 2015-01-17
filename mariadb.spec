@@ -1031,7 +1031,6 @@ fi
 
 %if %{with clibrary}
 %files libs
-%dir %{_libdir}/mysql
 %{_libdir}/mysql/libmysqlclient.so.*
 %{_libdir}/mysql/plugin/dialog.so
 %{_libdir}/mysql/plugin/mysql_clear_password.so
@@ -1057,6 +1056,7 @@ fi
 %files common
 %doc README COPYING COPYING.LESSER README.mysql-license README.mysql-docs
 %doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
+%dir %{_libdir}/mysql
 %dir %{_datadir}/%{name}
 %{_datadir}/%{name}/charsets
 %endif
