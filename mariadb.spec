@@ -145,6 +145,10 @@
 %global compatver 10.0
 %global bugfixver 15
 
+%if 0%{?scl:1}
+%global scl_upper %{lua:print(string.upper(string.gsub(rpm.expand("%{scl}"), "-", "_")))}
+%endif
+
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
 Release:          6%{?with_debug:.debug}%{?dist}
@@ -636,6 +640,7 @@ export LDFLAGS
          -DDAEMON_NAME="%{daemon_name}" \
 %if 0%{?scl:1}
          -DSCL_NAME="%{?scl}" \
+         -DSCL_NAME_UPPER="%{?scl_upper}" \
          -DSCL_SCRIPTS="%{?_scl_scripts}" \
 %endif
          -DLOG_LOCATION="%{logfile}" \
@@ -858,11 +863,6 @@ rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/connect.cnf
 rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/oqgraph.cnf
 %endif
 
-%if %{without config}
-rm -f %{buildroot}%{_sysconfdir}/my.cnf
-rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
-%endif
-
 %if %{without common}
 rm -rf %{buildroot}%{_datadir}/%{name}/charsets
 %endif
@@ -907,6 +907,17 @@ scl_reggen %{pkg_name}-server --chown %{logfile} mysql:mysql
 %{?with_config: scl_reggen %{pkg_name}-config --cpfile %{_sysconfdir}/my.cnf}
 %{?with_config: scl_reggen %{pkg_name}-config --mkdir %{_sysconfdir}/my.cnf.d}
 %{?with_config: scl_reggen %{pkg_name}-config --cpfile %{_sysconfdir}/my.cnf.d/mysql-clients.cnf}
+
+# generate a configuration file for daemon
+cat >> %{buildroot}%{?_scl_scripts}/service-environment << EOF
+# Services are started in a fresh environment without any influence of user's
+# environment (like environment variable values). As a consequence,
+# information of all enabled collections will be lost during service start up.
+# If user needs to run a service under any software collection enabled, this
+# collection has to be written into %{scl_upper}_SCLS_ENABLED variable 
+# in %{?_scl_scripts}/service-environment.
+%{scl_upper}_SCLS_ENABLED="%{scl}"
+EOF
 %endif #scl
 
 %check
@@ -1203,6 +1214,7 @@ fi
 
 %{?scl: %{_scl_scripts}/register.d/*.%{pkg_name}-server.*}
 %{?scl: %{_scl_scripts}/unregister.d/*.%{pkg_name}-server.*}
+%{?scl:%config(noreplace) %{?_scl_scripts}/service-environment}
 
 %if %{with oqgraph}
 %files oqgraph-engine
@@ -1258,6 +1270,12 @@ fi
 
 * Sat Jan 17 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-5
 - Rework register implementation
+
+* Fri Jan 16 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-6
+- Move service-environment into mariadb package
+
+* Fri Jan 16 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-5
+- Implement scl register functionality
 
 * Fri Dec 05 2014 Honza Horak <hhorak@redhat.com> - 1:10.0.15-3
 - Rework usage of macros and use macros defined in the meta package
