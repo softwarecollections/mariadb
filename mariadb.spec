@@ -564,27 +564,27 @@ sed -i -e 's/2.8.7/2.6.4/g' cmake/cpack_rpm.cmake
 rm -f mysql-test/t/ssl_8k_key-master.opt
 
 # generate a list of tests that fail, but are not disabled by upstream
-cat %{SOURCE50} > mysql-test/rh-skipped-tests.list
+cat %{SOURCE50} | tee mysql-test/rh-skipped-tests.list
 
 # disable some tests failing on different architectures
 %ifarch x86_64 i686
-cat %{SOURCE51} >> mysql-test/rh-skipped-tests.list
+cat %{SOURCE51} | tee -a mysql-test/rh-skipped-tests.list
 %endif
 
 %ifarch %{arm} aarch64
-cat %{SOURCE52} >> mysql-test/rh-skipped-tests.list
+cat %{SOURCE52} | tee -a mysql-test/rh-skipped-tests.list
 %endif
 
 %ifarch ppc ppc64 ppc64p7 s390 s390x
-cat %{SOURCE53} >> mysql-test/rh-skipped-tests.list
+cat %{SOURCE53} | tee -a mysql-test/rh-skipped-tests.list
 %endif
 
 %ifarch ppc64le
-cat %{SOURCE54} >> mysql-test/rh-skipped-tests.list
+cat %{SOURCE54} | tee -a mysql-test/rh-skipped-tests.list
 %endif
 
 %ifarch s390
-cat %{SOURCE55} >> mysql-test/rh-skipped-tests.list
+cat %{SOURCE55} | tee -a mysql-test/rh-skipped-tests.list
 %endif
 
 cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} %{SOURCE13} \
@@ -916,7 +916,7 @@ scl_reggen %{pkg_name}-server --chown %{logfile} mysql:mysql
 %{?with_init_systemd: scl_reggen %{pkg_name}-server --runafterderegister 'systemctl daemon-reload'}
 
 # generate a configuration file for daemon
-cat >> %{buildroot}%{?_scl_scripts}/service-environment << EOF
+cat << EOF | tee -a %{buildroot}%{?_scl_scripts}/service-environment
 # Services are started in a fresh environment without any influence of user's
 # environment (like environment variable values). As a consequence,
 # information of all enabled collections will be lost during service start up.
