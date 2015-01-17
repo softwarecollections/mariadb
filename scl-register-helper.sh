@@ -85,7 +85,7 @@ scl_reggen(){
         shift 2
         [ -z "$args" ] && echo "No dst or args specified for chown." && return 1
         # store command for chown
-        add2file "chowd $args ${dst}" ${_SR_BUILDROOT}${_SR_SCL_SCRIPTS}/register.d/60.${package}.attrs
+        add2file "chown $args ${dst}" ${_SR_BUILDROOT}${_SR_SCL_SCRIPTS}/register.d/60.${package}.attrs
          ;;
 
       *)
