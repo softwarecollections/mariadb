@@ -31,10 +31,14 @@
 
 # Mroonga engine is now part of MariaDB, but it only builds for x86_64;
 # variable mroonga allows to build with Mroonga storage engine
+%if 0%{?scl:1}
+%bcond_with mroonga
+%else
 %ifarch x86_64 i686
 %bcond_without mroonga
 %else
 %bcond_with mroonga
+%endif
 %endif
 
 # The Open Query GRAPH engine (OQGRAPH) is a computation engine allowing
