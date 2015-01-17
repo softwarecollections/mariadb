@@ -34,9 +34,9 @@ scl_reggen(){
         cp ${_SR_BUILDROOT}${file} ${_SR_BUILDROOT}${_SR_SCL_SCRIPTS}/register.content${file}
         # add command to script that handles copying file on register
         add2file "cp -n ${_SR_SCL_SCRIPTS}/register.content${file} ${file}" \
-                 ${_SR_BUILDROOT}${_SR_SCL_SCRIPTS}/register.d/50.${package}.content-cp
+                 ${_SR_BUILDROOT}${_SR_SCL_SCRIPTS}/register.d/50.${package}.content-create
         # add command to script that handles removing file on deregister
-        add2file "rm -f ${file}" ${_SR_BUILDROOT}${_SR_SCL_SCRIPTS}/deregister.d/50.${package}.content-rm
+        add2file "rm -f ${file}" ${_SR_BUILDROOT}${_SR_SCL_SCRIPTS}/deregister.d/50.${package}.content-remove
         ;;
 
       --selinux )
@@ -57,7 +57,10 @@ scl_reggen(){
         shift
         [ -z "$dst" ] && echo "No dst specified for mkdir." && return 1
         # store command for creating directory
-        add2file "mkdir -p ${dst}" ${_SR_BUILDROOT}${_SR_SCL_SCRIPTS}/register.d/40.${package}.content
+        add2file "mkdir -p ${dst}" ${_SR_BUILDROOT}${_SR_SCL_SCRIPTS}/register.d/40.${package}.content-create
+        # store command for removing directory if empty, ignore errors
+        add2file "rmdir --ignore-fail-on-non-empty -p ${dst}" \
+                 ${_SR_BUILDROOT}${_SR_SCL_SCRIPTS}/deregister.d/60.${package}.content-remove
         ;;
 
       --touch )
@@ -65,9 +68,9 @@ scl_reggen(){
         shift
         [ -z "$file" ] && echo "No file specified for touch." && return 1
         # store command for creating file
-        add2file "touch ${file}" ${_SR_BUILDROOT}${_SR_SCL_SCRIPTS}/register.d/50.${package}.content
+        add2file "touch ${file}" ${_SR_BUILDROOT}${_SR_SCL_SCRIPTS}/register.d/50.${package}.content-create
         # add command to script that handles removing file on deregister
-        add2file "rm -f ${file}" ${_SR_BUILDROOT}${_SR_SCL_SCRIPTS}/deregister.d/50.${package}.content-rm
+        add2file "rm -f ${file}" ${_SR_BUILDROOT}${_SR_SCL_SCRIPTS}/deregister.d/50.${package}.content-remove
         ;;
 
       --chmod )
@@ -86,7 +89,23 @@ scl_reggen(){
         [ -z "$args" ] && echo "No dst or args specified for chown." && return 1
         # store command for chown
         add2file "chown $args ${dst}" ${_SR_BUILDROOT}${_SR_SCL_SCRIPTS}/register.d/60.${package}.attrs
-         ;;
+        ;;
+
+      --runafterregister )
+        cmd=$1
+        shift
+        [ -z "$cmd" ] && echo "No cmd specified for run." && return 1
+        # store command for running after
+        add2file "$cmd" ${_SR_BUILDROOT}${_SR_SCL_SCRIPTS}/register.d/90.${package}.run
+        ;;
+
+      --runafterderegister )
+        cmd=$1
+        shift
+        [ -z "$cmd" ] && echo "No cmd specified for run." && return 1
+        # store command for running after
+        add2file "$cmd" ${_SR_BUILDROOT}${_SR_SCL_SCRIPTS}/deregister.d/90.${package}.run
+        ;;
 
       *)
         echo "Wrong action $*"

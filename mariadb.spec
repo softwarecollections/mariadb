@@ -888,25 +888,30 @@ rm -f %{buildroot}%{_mandir}/man1/mysql_client_test.1*
 %include %SOURCE60
 scl_reggen %{pkg_name}-server --cpfile %{daemondir}/%{daemon_name}%{?with_init_systemd:.service}
 scl_reggen %{pkg_name}-server --selinux %{daemondir}/%{daemon_name}%{?with_init_systemd:.service} %{se_daemon_source}
-scl_reggen %{pkg_name}-server --selinux %{logfiledir} %{se_log_source}
 %{?with_init_systemd: scl_reggen %{pkg_name}-server --cpfile %{_tmpfilesdir}/%{name}.conf}
 scl_reggen %{pkg_name}-server --cpfile %{logrotateddir}/%{daemon_name}
 scl_reggen %{pkg_name}-server --cpfile %{_sysconfdir}/my.cnf.d/server.cnf
+scl_reggen %{pkg_name}-server --selinux %{_sysconfdir}/my.cnf %{?_root_sysconfdir}/my.cnf
 scl_reggen %{pkg_name}-server --mkdir %{dbdatadir}
 scl_reggen %{pkg_name}-server --chown %{dbdatadir} mysql:mysql
 scl_reggen %{pkg_name}-server --chmod %{dbdatadir} 0755
+scl_reggen %{pkg_name}-server --selinux %{dbdatadir} /var/lib/mysql
 scl_reggen %{pkg_name}-server --mkdir %{_localstatedir}/run/%{daemon_name}
 scl_reggen %{pkg_name}-server --chown %{_localstatedir}/run/%{daemon_name} mysql:mysql
 scl_reggen %{pkg_name}-server --chmod %{_localstatedir}/run/%{daemon_name} 0755
+scl_reggen %{pkg_name}-server --selinux %{_localstatedir}/run/%{daemon_name} /var/run/mysqld
 scl_reggen %{pkg_name}-server --mkdir %{logfiledir}
 scl_reggen %{pkg_name}-server --chown %{logfiledir} mysql:mysql
 scl_reggen %{pkg_name}-server --chmod %{logfiledir} 0750
+scl_reggen %{pkg_name}-server --selinux %{logfiledir} %{se_log_source}
 scl_reggen %{pkg_name}-server --touch %{logfile}
 scl_reggen %{pkg_name}-server --chown %{logfile} mysql:mysql
 %{?with_clibrary: scl_reggen %{pkg_name}-libs --cpfile %{_sysconfdir}/my.cnf.d/client.cnf}
 %{?with_config: scl_reggen %{pkg_name}-config --cpfile %{_sysconfdir}/my.cnf}
 %{?with_config: scl_reggen %{pkg_name}-config --mkdir %{_sysconfdir}/my.cnf.d}
 %{?with_config: scl_reggen %{pkg_name}-config --cpfile %{_sysconfdir}/my.cnf.d/mysql-clients.cnf}
+%{?with_init_systemd: scl_reggen %{pkg_name}-server --runafterregister 'systemctl daemon-reload'}
+%{?with_init_systemd: scl_reggen %{pkg_name}-server --runafterderegister 'systemctl daemon-reload'}
 
 # generate a configuration file for daemon
 cat >> %{buildroot}%{?_scl_scripts}/service-environment << EOF
