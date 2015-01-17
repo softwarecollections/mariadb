@@ -35,8 +35,8 @@ scl_reggen(){
         # add command to script that handles copying file on register
         add2file "cp -n ${_SR_SCL_SCRIPTS}/register.content${file} ${file}" \
                  ${_SR_BUILDROOT}${_SR_SCL_SCRIPTS}/register.d/50.${package}.content-cp
-        # add command to script that handles removing file on unregister
-        add2file "rm -f ${file}" ${_SR_BUILDROOT}${_SR_SCL_SCRIPTS}/unregister.d/50.${package}.content-rm
+        # add command to script that handles removing file on deregister
+        add2file "rm -f ${file}" ${_SR_BUILDROOT}${_SR_SCL_SCRIPTS}/deregister.d/50.${package}.content-rm
         ;;
 
       --selinux )
@@ -66,8 +66,8 @@ scl_reggen(){
         [ -z "$file" ] && echo "No file specified for touch." && return 1
         # store command for creating file
         add2file "touch ${file}" ${_SR_BUILDROOT}${_SR_SCL_SCRIPTS}/register.d/50.${package}.content
-        # add command to script that handles removing file on unregister
-        add2file "rm -f ${file}" ${_SR_BUILDROOT}${_SR_SCL_SCRIPTS}/unregister.d/50.${package}.content-rm
+        # add command to script that handles removing file on deregister
+        add2file "rm -f ${file}" ${_SR_BUILDROOT}${_SR_SCL_SCRIPTS}/deregister.d/50.${package}.content-rm
         ;;
 
       --chmod )

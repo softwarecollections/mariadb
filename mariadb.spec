@@ -1062,7 +1062,7 @@ fi
 %{?scl: %dir %{_scl_scripts}/register.content%{_sysconfdir}/my.cnf.d}
 %{?scl: %config(noreplace) %{_scl_scripts}/register.content%{_sysconfdir}/my.cnf.d/mysql-clients.cnf}
 %{?scl: %{_scl_scripts}/register.d/*.%{pkg_name}-config.*}
-%{?scl: %{_scl_scripts}/unregister.d/*.%{pkg_name}-config.*}
+%{?scl: %{_scl_scripts}/deregister.d/*.%{pkg_name}-config.*}
 %endif
 
 %if %{with common}
@@ -1213,7 +1213,7 @@ fi
 %{?scl: %dir %{_scl_scripts}/register.content%{logrotateddir}}
 
 %{?scl: %{_scl_scripts}/register.d/*.%{pkg_name}-server.*}
-%{?scl: %{_scl_scripts}/unregister.d/*.%{pkg_name}-server.*}
+%{?scl: %{_scl_scripts}/deregister.d/*.%{pkg_name}-server.*}
 %{?scl:%config(noreplace) %{?_scl_scripts}/service-environment}
 
 %if %{with oqgraph}
