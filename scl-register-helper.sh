@@ -1,7 +1,7 @@
 #!/bin/sh
 
 export _SR_BUILDROOT=%{buildroot}
-export _SR_SCL_SCRIPTS=%{_scl_scripts}
+export _SR_SCL_SCRIPTS=%{?_scl_scripts}
 
 scl_reggen(){
 

@@ -884,8 +884,10 @@ rm -rf %{buildroot}%{_datadir}/mysql-test
 rm -f %{buildroot}%{_mandir}/man1/mysql_client_test.1*
 %endif
 
+#include helper script for creating register stuff
+%include %{_sourcedir}/scl-register-helper.sh
+
 %if 0%{?scl:1}
-%include %SOURCE60
 scl_reggen %{pkg_name}-server --cpfile %{daemondir}/%{daemon_name}%{?with_init_systemd:.service}
 scl_reggen %{pkg_name}-server --selinux %{daemondir}/%{daemon_name}%{?with_init_systemd:.service} %{se_daemon_source}
 %{?with_init_systemd: scl_reggen %{pkg_name}-server --cpfile %{_tmpfilesdir}/%{name}.conf}
