@@ -183,7 +183,6 @@ Source52:         rh-skipped-tests-arm.list
 Source53:         rh-skipped-tests-ppc-s390.list
 Source54:         rh-skipped-tests-ppc64le.list
 Source55:         rh-skipped-tests-s390.list
-Source60:         scl-register-helper.sh
 
 # Comments for these patches are in the patch files
 # Patches common for more mysql-like packages
@@ -336,6 +335,7 @@ MariaDB packages.
 Summary:          The MariaDB server and related files
 Group:            Applications/Databases
 
+Requires(pre):    %{name}-server-prep%{?_isa} = %{sameevr}
 # note: no version here = %%{version}-%%{release}
 %if %{with mysql_names}
 Requires:         mysql-compat-client%{?_isa}
@@ -378,6 +378,18 @@ client/server implementation consisting of a server daemon (mysqld)
 and many different client programs and libraries. This package contains
 the MariaDB server and some accompanying files and directories.
 MariaDB is a community developed branch of MySQL.
+
+
+%package          server-prep
+Summary:          Helper files for the MariaDB server
+Group:            Applications/Databases
+Requires:         %{_sysconfdir}/my.cnf
+Requires(post):   policycoreutils-python libselinux-utils
+
+%description      server-prep
+Part of the server package that handles creating support files and directories.
+Detaching such aparathus may be handy in some specific deployments. This
+package is usually required by server package.
 
 
 %if %{with oqgraph}
@@ -884,37 +896,7 @@ rm -rf %{buildroot}%{_datadir}/mysql-test
 rm -f %{buildroot}%{_mandir}/man1/mysql_client_test.1*
 %endif
 
-#include helper script for creating register stuff
-%include %{_sourcedir}/scl-register-helper.sh
-
 %if 0%{?scl:1}
-scl_reggen %{pkg_name}-server --cpfile %{daemondir}/%{daemon_name}%{?with_init_systemd:.service}
-scl_reggen %{pkg_name}-server --selinux %{daemondir}/%{daemon_name}%{?with_init_systemd:.service} %{se_daemon_source}
-%{?with_init_systemd: scl_reggen %{pkg_name}-server --cpfile %{_tmpfilesdir}/%{name}.conf}
-scl_reggen %{pkg_name}-server --cpfile %{logrotateddir}/%{daemon_name}
-scl_reggen %{pkg_name}-server --cpfile %{_sysconfdir}/my.cnf.d/server.cnf
-scl_reggen %{pkg_name}-server --selinux %{_sysconfdir}/my.cnf %{?_root_sysconfdir}/my.cnf
-scl_reggen %{pkg_name}-server --mkdir %{dbdatadir}
-scl_reggen %{pkg_name}-server --chown %{dbdatadir} mysql:mysql
-scl_reggen %{pkg_name}-server --chmod %{dbdatadir} 0755
-scl_reggen %{pkg_name}-server --selinux %{dbdatadir} /var/lib/mysql
-scl_reggen %{pkg_name}-server --mkdir %{_localstatedir}/run/%{daemon_name}
-scl_reggen %{pkg_name}-server --chown %{_localstatedir}/run/%{daemon_name} mysql:mysql
-scl_reggen %{pkg_name}-server --chmod %{_localstatedir}/run/%{daemon_name} 0755
-scl_reggen %{pkg_name}-server --selinux %{_localstatedir}/run/%{daemon_name} /var/run/mysqld
-scl_reggen %{pkg_name}-server --mkdir %{logfiledir}
-scl_reggen %{pkg_name}-server --chown %{logfiledir} mysql:mysql
-scl_reggen %{pkg_name}-server --chmod %{logfiledir} 0750
-scl_reggen %{pkg_name}-server --selinux %{logfiledir} %{se_log_source}
-scl_reggen %{pkg_name}-server --touch %{logfile}
-scl_reggen %{pkg_name}-server --chown %{logfile} mysql:mysql
-%{?with_clibrary: scl_reggen %{pkg_name}-libs --cpfile %{_sysconfdir}/my.cnf.d/client.cnf}
-%{?with_config: scl_reggen %{pkg_name}-config --cpfile %{_sysconfdir}/my.cnf}
-%{?with_config: scl_reggen %{pkg_name}-config --mkdir %{_sysconfdir}/my.cnf.d}
-%{?with_config: scl_reggen %{pkg_name}-config --cpfile %{_sysconfdir}/my.cnf.d/mysql-clients.cnf}
-%{?with_init_systemd: scl_reggen %{pkg_name}-server --runafterregister 'systemctl daemon-reload'}
-%{?with_init_systemd: scl_reggen %{pkg_name}-server --runafterderegister 'systemctl daemon-reload'}
-
 # generate a configuration file for daemon
 cat << EOF | tee -a %{buildroot}%{?_scl_scripts}/service-environment
 # Services are started in a fresh environment without any influence of user's
@@ -959,10 +941,16 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 %endif
 %endif
 
-%pre server
+%pre server-prep
 /usr/sbin/groupadd -g 27 -o -r mysql >/dev/null 2>&1 || :
 /usr/sbin/useradd -M -N -g mysql -o -r -d %{mysqluserhome} -s /sbin/nologin \
   -c "MySQL Server" -u 27 mysql >/dev/null 2>&1 || :
+semanage fcontext -a -e %{se_daemon_source} %{daemondir}/%{daemon_name}%{?with_init_systemd:.service} &>/dev/null 2>&1 || :
+semanage fcontext -a -e %{?_root_sysconfdir}/my.cnf %{_sysconfdir}/my.cnf &>/dev/null 2>&1 || :
+semanage fcontext -a -e /var/lib/mysql %{dbdatadir} &>/dev/null 2>&1 || :
+semanage fcontext -a -e /var/run/mysqld %{_localstatedir}/run/%{daemon_name} &>/dev/null 2>&1 || :
+semanage fcontext -a -e %{se_log_source} %{logfiledir} &>/dev/null 2>&1 || :
+selinuxenabled && load_policy || :
 
 %if %{with clibrary}
 %post libs -p /sbin/ldconfig
@@ -972,7 +960,7 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 %post embedded -p /sbin/ldconfig
 %endif
 
-%post server
+%post server-prep
 %if %{with init_systemd}
 %systemd_post %{daemon_name}.service
 %endif
@@ -983,10 +971,13 @@ fi
 %endif
 /bin/touch %{logfile}
 /bin/chmod 0755 %{dbdatadir}
-%{?scl:%{_scl_scripts}/register.d/*.%{pkg_name}-server.selinux-set}
-%{?scl:%{_scl_scripts}/register.d/*.%{pkg_name}-server.selinux-restore}
+restorecon -R %{_sysconfdir} >/dev/null 2>&1 || :
+restorecon -R %{_localstatedir} >/dev/null 2>&1 || :
+restorecon -R %{daemondir}/%{daemon_name}%{?with_init_systemd:.service} >/dev/null 2>&1 || :
+restorecon -R %{dbdatadir} >/dev/null 2>&1 || :
+restorecon -R %{logfiledir} >/dev/null 2>&1 || :
 
-%preun server
+%preun server-prep
 %if %{with init_systemd}
 %systemd_preun %{daemon_name}.service
 %endif
@@ -1005,7 +996,7 @@ fi
 %postun embedded -p /sbin/ldconfig
 %endif
 
-%postun server
+%postun server-prep
 %if %{with init_systemd}
 %systemd_postun_with_restart %{daemon_name}.service
 %endif
@@ -1055,8 +1046,6 @@ fi
 %{_libdir}/mysql/plugin/mysql_clear_password.so
 %{!?scl: %{_sysconfdir}/ld.so.conf.d/*}
 %config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
-%{?scl: %config(noreplace) %{_scl_scripts}/register.content%{_sysconfdir}/my.cnf.d/clients.cnf}
-%{?scl: %{_scl_scripts}/register.d/*.%{pkg_name}-libs.*}
 %endif
 
 %if %{with config}
@@ -1066,11 +1055,6 @@ fi
 %dir %{_sysconfdir}/my.cnf.d
 %config(noreplace) %{_sysconfdir}/my.cnf
 %config(noreplace) %{_sysconfdir}/my.cnf.d/mysql-clients.cnf
-%{?scl: %config(noreplace) %{_scl_scripts}/register.content%{_sysconfdir}/my.cnf}
-%{?scl: %dir %{_scl_scripts}/register.content%{_sysconfdir}/my.cnf.d}
-%{?scl: %config(noreplace) %{_scl_scripts}/register.content%{_sysconfdir}/my.cnf.d/mysql-clients.cnf}
-%{?scl: %{_scl_scripts}/register.d/*.%{pkg_name}-config.*}
-%{?scl: %{_scl_scripts}/deregister.d/*.%{pkg_name}-config.*}
 %endif
 
 %if %{with common}
@@ -1143,9 +1127,6 @@ fi
 %{_bindir}/resolveip
 %{?with_tokudb:%{_bindir}/tokuftdump}
 
-%config(noreplace) %{_sysconfdir}/my.cnf.d/server.cnf
-%{?scl: %config(noreplace) %{_scl_scripts}/register.content/%{_sysconfdir}/my.cnf.d/server.cnf}
-%{?with_tokudb:%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf}
 
 %{_libexecdir}/mysqld
 
@@ -1202,27 +1183,24 @@ fi
 %{?with_mroonga:%{_datadir}/%{name}/mroonga/uninstall.sql}
 %{_datadir}/%{name}/my-*.cnf
 
-%{?scl:%{_scl_scripts}/register.content%{daemondir}}
-%{daemondir}/%{daemon_name}*
 %{_libexecdir}/mysql-prepare-db-dir
 %{_libexecdir}/mysql-wait-ready
 %{_libexecdir}/mysql-check-socket
 %{_libexecdir}/mysql-check-upgrade
 %{_libexecdir}/mysql-scripts-common
 
+%{?scl:%config(noreplace) %{?_scl_scripts}/service-environment}
+
+%files server-prep
+%config(noreplace) %{_sysconfdir}/my.cnf.d/server.cnf
+%{?with_tokudb:%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf}
+%{daemondir}/%{daemon_name}*
 %{?with_init_systemd:%{_tmpfilesdir}/%{name}.conf}
-%{?scl:%{?with_init_systemd:%{_scl_scripts}/register.content%{_tmpfilesdir}}}
 %attr(0755,mysql,mysql) %dir %{_localstatedir}/run/%{daemon_name}
 %attr(0755,mysql,mysql) %dir %{dbdatadir}
 %attr(0750,mysql,mysql) %dir %{logfiledir}
 %attr(0640,mysql,mysql) %config %ghost %verify(not md5 size mtime) %{logfile}
 %config(noreplace) %{logrotateddir}/%{daemon_name}
-%{?scl: %config(noreplace) %{_scl_scripts}/register.content%{logrotateddir}/%{daemon_name}}
-%{?scl: %dir %{_scl_scripts}/register.content%{logrotateddir}}
-
-%{?scl: %{_scl_scripts}/register.d/*.%{pkg_name}-server.*}
-%{?scl: %{_scl_scripts}/deregister.d/*.%{pkg_name}-server.*}
-%{?scl:%config(noreplace) %{?_scl_scripts}/service-environment}
 
 %if %{with oqgraph}
 %files oqgraph-engine
