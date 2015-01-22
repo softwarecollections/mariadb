@@ -800,7 +800,7 @@ mkdir -p %{buildroot}%{logrotateddir}
 mv %{buildroot}%{_datadir}/%{name}/mysql-log-rotate %{buildroot}%{logrotateddir}/%{daemon_name}
 chmod 644 %{buildroot}%{logrotateddir}/%{daemon_name}
 
-%if 0%{?scl:1}
+%if %{with clibrary} && 0%{?scl:1}
 mkdir -p %{buildroot}%{_sysconfdir}/ld.so.conf.d
 echo "%{_libdir}/mysql" > %{buildroot}%{_sysconfdir}/ld.so.conf.d/%{name}-%{_arch}.conf
 %endif
@@ -1053,7 +1053,7 @@ fi
 %{_libdir}/mysql/libmysqlclient.so.*
 %{_libdir}/mysql/plugin/dialog.so
 %{_libdir}/mysql/plugin/mysql_clear_password.so
-%{!?scl:%{_sysconfdir}/ld.so.conf.d/*}
+%{!?scl: %{_sysconfdir}/ld.so.conf.d/*}
 %config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
 %{?scl: %config(noreplace) %{_scl_scripts}/register.content%{_sysconfdir}/my.cnf.d/clients.cnf}
 %{?scl: %{_scl_scripts}/register.d/*.%{pkg_name}-libs.*}
