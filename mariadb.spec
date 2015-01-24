@@ -151,7 +151,7 @@
 
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          6%{?with_debug:.debug}%{?dist}
+Release:          7%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -588,7 +588,7 @@ cat %{SOURCE55} | tee -a mysql-test/rh-skipped-tests.list
 %endif
 
 cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} %{SOURCE13} \
-   %{SOURCE14} %{SOURCE15} %{SOURCE16} %{SOURCE19} \
+   %{SOURCE14} %{SOURCE15} %{SOURCE16} %{SOURCE19} %{SOURCE60} \
    scripts
 
 %if 0%{?scl:1}
@@ -800,7 +800,7 @@ mkdir -p %{buildroot}%{logrotateddir}
 mv %{buildroot}%{_datadir}/%{name}/mysql-log-rotate %{buildroot}%{logrotateddir}/%{daemon_name}
 chmod 644 %{buildroot}%{logrotateddir}/%{daemon_name}
 
-%if %{with clibrary} && 0%{?scl:1}
+%if %{with clibrary} && 0%{!?scl:1}
 mkdir -p %{buildroot}%{_sysconfdir}/ld.so.conf.d
 echo "%{_libdir}/mysql" > %{buildroot}%{_sysconfdir}/ld.so.conf.d/%{name}-%{_arch}.conf
 %endif
@@ -884,10 +884,15 @@ rm -rf %{buildroot}%{_datadir}/mysql-test
 rm -f %{buildroot}%{_mandir}/man1/mysql_client_test.1*
 %endif
 
-#include helper script for creating register stuff
-%include %{_sourcedir}/scl-register-helper.sh
-
 %if 0%{?scl:1}
+#include helper script for creating register stuff
+source ./scripts/scl-register-helper.sh
+
+# configure variables for the helper function scl_reggen
+export _SR_BUILDROOT=%{buildroot}
+export _SR_SCL_SCRIPTS=%{?_scl_scripts}
+
+# backup files and generate register scripts for -server package
 scl_reggen %{pkg_name}-server --cpfile %{daemondir}/%{daemon_name}%{?with_init_systemd:.service}
 scl_reggen %{pkg_name}-server --selinux %{daemondir}/%{daemon_name}%{?with_init_systemd:.service} %{se_daemon_source}
 %{?with_init_systemd: scl_reggen %{pkg_name}-server --cpfile %{_tmpfilesdir}/%{name}.conf}
@@ -1273,6 +1278,11 @@ fi
 %endif
 
 %changelog
+* Sat Jan 24 2015 Honza Horak <hhorak@redhat.com>
+- Fix path for sysconfig file
+  Filter provides in el6 properly
+  Fix initscript file location
+
 * Sat Jan 17 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-6
 - Do not package connect plugin for scl
 
