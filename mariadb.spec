@@ -105,9 +105,9 @@
 %{?scl:%global se_log_source %{?_root_localstatedir}/log/mariadb}
 %global daemondir %{_unitdir}
 %else
-%{?scl:%global se_daemon_source %{_initddir}/mysqld}
+%{?scl:%global se_daemon_source %{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/rc.d/init.d/mysqld}
 %{?scl:%global se_log_source %{?_root_localstatedir}/log/mysql}
-%global daemondir %{_initddir}
+%global daemondir %{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/rc.d/init.d
 %endif
 %if ! 0%{?scl:1} || 0%{?nfsmountable:1}
 %global logfiledir %{_localstatedir}/log/mariadb
@@ -258,7 +258,7 @@ Provides:         mysql-compat-client%{?_isa} = %{sameevr}
 %global __provides_exclude_from ^(%{_datadir}/(mysql|mysql-test)/.*|%{_libdir}/mysql/plugin/.*\\.so)$
 %else
 %filter_from_requires /perl(\(hostnames\|lib::mtr\|lib::v1\|mtr_\|My::\)/d
-%filter_provides_in -P (%{_datadir}/(mysql|mysql-test)/.*|%{_libdir}/mysql/plugin/.*\\.so)$
+%filter_provides_in -P (%{_datadir}/(mysql|mysql-test)/.*|%{_libdir}/mysql/plugin/.*\.so)
 %filter_setup
 %endif
 
@@ -758,7 +758,7 @@ echo "d %{_localstatedir}/run/%{mysqld_pid_dir} 0755 mysql mysql -" >>%{buildroo
 
 # install SysV init script
 %if %{with init_sysv}
-install -D -p -m 755 scripts/mysql.init %{buildroot}%{_initddir}/%{daemon_name}
+install -D -p -m 755 scripts/mysql.init %{buildroot}%{daemondir}/%{daemon_name}
 %endif
 
 # helper scripts for service starting
