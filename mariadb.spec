@@ -152,7 +152,7 @@
 
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          7%{?with_debug:.debug}%{?dist}
+Release:          8%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1274,6 +1274,9 @@ fi
 %endif
 
 %changelog
+* Sun Jan 25 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-8
+- Use pkg_name for files in share
+
 * Sat Jan 24 2015 Honza Horak <hhorak@redhat.com>
 - Fix path for sysconfig file
   Filter provides in el6 properly
