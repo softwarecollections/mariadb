@@ -152,7 +152,7 @@
 
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          8%{?with_debug:.debug}%{?dist}
+Release:          9%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -907,8 +907,6 @@ scl_reggen %{pkg_name}-server --mkdir %{logfiledir}
 scl_reggen %{pkg_name}-server --chown %{logfiledir} mysql:mysql
 scl_reggen %{pkg_name}-server --chmod %{logfiledir} 0750
 scl_reggen %{pkg_name}-server --selinux %{logfiledir} %{se_log_source}
-scl_reggen %{pkg_name}-server --touch %{logfile}
-scl_reggen %{pkg_name}-server --chown %{logfile} mysql:mysql
 %{?with_clibrary: scl_reggen %{pkg_name}-libs --cpfile %{_sysconfdir}/my.cnf.d/client.cnf}
 %{?with_config: scl_reggen %{pkg_name}-config --cpfile %{_sysconfdir}/my.cnf}
 %{?with_config: scl_reggen %{pkg_name}-config --mkdir %{_sysconfdir}/my.cnf.d}
@@ -982,8 +980,6 @@ if [ $1 = 1 ]; then
     /sbin/chkconfig --add %{daemon_name}
 fi
 %endif
-/bin/touch %{logfile}
-/bin/chmod 0755 %{dbdatadir}
 %{?scl:%{_scl_scripts}/register.d/*.%{pkg_name}-server.selinux-set}
 %{?scl:%{_scl_scripts}/register.d/*.%{pkg_name}-server.selinux-restore}
 
@@ -1274,6 +1270,9 @@ fi
 %endif
 
 %changelog
+* Sun Jan 25 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-9
+- Do not create log file in post script
+
 * Sun Jan 25 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-8
 - Use pkg_name for files in share
 
