@@ -152,7 +152,7 @@
 
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          9%{?with_debug:.debug}%{?dist}
+Release:          10%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1270,6 +1270,9 @@ fi
 %endif
 
 %changelog
+* Sun Jan 25 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-10
+- Use scl call in the logrotate script
+
 * Sun Jan 25 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-9
 - Do not create log file in post script
 
