@@ -148,7 +148,7 @@
 
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          12%{?with_debug:.debug}%{?dist}
+Release:          13%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -192,6 +192,7 @@ Patch5:           %{pkgnamepatch}-file-contents.patch
 Patch6:           %{pkgnamepatch}-dh1024.patch
 Patch7:           %{pkgnamepatch}-scripts.patch
 Patch8:           %{pkgnamepatch}-install-db-sharedir.patch
+Patch9:           %{pkgnamepatch}-noclientlib.patch
 
 # Patches specific for this mysql package
 Patch30:          %{pkgnamepatch}-errno.patch
@@ -420,7 +421,7 @@ or products (such as Excel), or data retrieved from the environment
 %package          devel
 Summary:          Files for development of MariaDB/MySQL applications
 Group:            Applications/Databases
-Requires:         %{name}-libs%{?_isa} = %{sameevr}
+%{?with_clibrary:Requires:         %{name}-libs%{?_isa} = %{sameevr}}
 Requires:         openssl-devel%{?_isa}
 %{?scl:Requires:%scl_runtime}
 %if %{with mysql_names}
@@ -549,6 +550,7 @@ MariaDB is a community developed branch of MySQL.
 %patch6 -p1
 %patch7 -p1
 %patch8 -p1
+%patch9 -p1
 %patch30 -p1
 %patch31 -p1
 %patch32 -p1
@@ -1275,6 +1277,9 @@ fi
 %endif
 
 %changelog
+* Mon Jan 26 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-13
+- Do not use clibrary in -devel package and mysql_config if not built with
+
 * Mon Jan 26 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-12
 - Enable oqgraph also for scl
 
