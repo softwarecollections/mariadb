@@ -45,11 +45,7 @@
 # The Open Query GRAPH engine (OQGRAPH) is a computation engine allowing
 # hierarchies and more complex graph structures to be handled in a relational
 # fashion; enabled by default
-%if 0%{?scl:1}
-%bcond_with oqgraph
-%else
 %bcond_without oqgraph
-%endif
 
 # For some use cases we do not need some parts of the package
 %bcond_without devel
@@ -152,7 +148,7 @@
 
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          11%{?with_debug:.debug}%{?dist}
+Release:          12%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -388,8 +384,12 @@ Group:            Applications/Databases
 Requires:         %{name}-server%{?_isa} = %{sameevr}
 %{?scl:Requires:%scl_runtime}
 # boost and Judy required for oograph
+%if 0%{?fedora} >= 15 || 0%{?rhel} >= 7
 BuildRequires:    boost-devel
-BuildRequires:    Judy-devel
+%else
+BuildRequires:    %{?scl_prefix}boost-devel
+%endif
+BuildRequires:    %{?scl_prefix}Judy-devel
 
 %description      oqgraph-engine
 The package provides Open Query GRAPH engine (OQGRAPH) as plugin for MariaDB
@@ -608,6 +608,7 @@ cp %{SOURCE2} %{SOURCE3} %{SOURCE10} %{SOURCE11} %{SOURCE12} %{SOURCE13} \
     fi
 %endif
 
+%{?scl:scl enable %{scl} - << "EOF"}
 CFLAGS="%{optflags} -D_GNU_SOURCE -D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE"
 # force PIC mode so that we can build libmysqld.so
 CFLAGS="$CFLAGS -fPIC"
@@ -680,6 +681,7 @@ export LDFLAGS
          %{?_hardened_build:-DWITH_MYSQLD_LDFLAGS="-pie -Wl,-z,relro,-z,now"}
 
 make %{?_smp_mflags} VERBOSE=1
+%{?scl:EOF}
 
 # debuginfo extraction scripts fail to find source files in their real
 # location -- satisfy them by copying these files into location, which
@@ -691,7 +693,9 @@ for e in innobase xtradb ; do
 done
 
 %install
+%{?scl:scl enable %{scl} - << "EOF"}
 make DESTDIR=%{buildroot} install
+%{?scl:EOF}
 
 # cmake generates some completely wacko references to -lprobes_mysql when
 # building with dtrace support.  Haven't found where to shut that off,
@@ -1271,6 +1275,9 @@ fi
 %endif
 
 %changelog
+* Mon Jan 26 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-12
+- Enable oqgraph also for scl
+
 * Mon Jan 26 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-11
 - Restorecon on sclroot in post script and move selinux actions before working
   with the service
