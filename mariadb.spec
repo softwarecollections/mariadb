@@ -152,7 +152,7 @@
 
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          10%{?with_debug:.debug}%{?dist}
+Release:          11%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -972,6 +972,9 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 %endif
 
 %post server
+%{?scl:restorecon -r %{?_scl_root}/} >/dev/null 2>&1 || :
+%{?scl:%{_scl_scripts}/register.d/*.%{pkg_name}-server.selinux-set} >/dev/null 2>&1 || :
+%{?scl:%{_scl_scripts}/register.d/*.%{pkg_name}-server.selinux-restore} >/dev/null 2>&1 || :
 %if %{with init_systemd}
 %systemd_post %{daemon_name}.service
 %endif
@@ -980,8 +983,6 @@ if [ $1 = 1 ]; then
     /sbin/chkconfig --add %{daemon_name}
 fi
 %endif
-%{?scl:%{_scl_scripts}/register.d/*.%{pkg_name}-server.selinux-set}
-%{?scl:%{_scl_scripts}/register.d/*.%{pkg_name}-server.selinux-restore}
 
 %preun server
 %if %{with init_systemd}
@@ -1270,6 +1271,10 @@ fi
 %endif
 
 %changelog
+* Mon Jan 26 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-11
+- Restorecon on sclroot in post script and move selinux actions before working
+  with the service
+
 * Sun Jan 25 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-10
 - Use scl call in the logrotate script
 
