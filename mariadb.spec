@@ -148,7 +148,7 @@
 
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          13%{?with_debug:.debug}%{?dist}
+Release:          14%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -935,6 +935,7 @@ EOF
 %check
 %if %{with test}
 %if %runselftest
+%{?scl:scl enable %{scl} - << "EOF"}
 # hack for https://mariadb.atlassian.net/browse/MDEV-7454
 %{?with_init_sysv:LD_LIBRARY_PATH=$(pwd)/unittest/mytap }make test VERBOSE=1
 # hack to let 32- and 64-bit tests run concurrently on same build machine
@@ -961,6 +962,7 @@ export MTR_BUILD_THREAD=%{__isa_bits}
   # cmake build scripts will install the var cruft if left alone :-(
   rm -rf var
 )
+%{?scl:EOF}
 %endif
 %endif
 
@@ -1277,6 +1279,9 @@ fi
 %endif
 
 %changelog
+* Tue Jan 27 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-14
+- Run tests in scl environment
+
 * Mon Jan 26 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-13
 - Do not use clibrary in -devel package and mysql_config if not built with
 
