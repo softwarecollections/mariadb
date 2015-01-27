@@ -148,7 +148,7 @@
 
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          15%{?with_debug:.debug}%{?dist}
+Release:          16%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -829,6 +829,8 @@ rm -f %{buildroot}%{_sysconfdir}/logrotate.d/mysql
 rm -rf %{buildroot}%{_datadir}/%{pkg_name}/solaris/
 
 %if %{without clibrary}
+unlink %{buildroot}%{_libdir}/mysql/libmysqlclient.so
+unlink %{buildroot}%{_libdir}/mysql/libmysqlclient_r.so
 rm -rf %{buildroot}%{_libdir}/mysql/libmysqlclient*.so.*
 rm -rf %{buildroot}%{_sysconfdir}/ld.so.conf.d
 rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/client.cnf
@@ -1246,8 +1248,10 @@ fi
 %{_bindir}/mysql_config-%{__isa_bits}
 %{_includedir}/mysql
 %{_datadir}/aclocal/mysql.m4
+%if %{with clibrary}
 %{_libdir}/mysql/libmysqlclient.so
 %{_libdir}/mysql/libmysqlclient_r.so
+%endif
 %{_mandir}/man1/mysql_config.1*
 %endif
 
@@ -1277,6 +1281,9 @@ fi
 %endif
 
 %changelog
+* Tue Jan 27 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-16
+- Do not include symlink to libmysqlclient if not shipping the library
+
 * Tue Jan 27 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-15
 - Do not define selinux specifically for /var/run and config, it is done
   generally for all /etc and /var
