@@ -148,7 +148,7 @@
 
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          14%{?with_debug:.debug}%{?dist}
+Release:          15%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -900,7 +900,6 @@ scl_reggen %{pkg_name}-server --selinux %{daemondir}/%{daemon_name}%{?with_init_
 %{?with_init_systemd: scl_reggen %{pkg_name}-server --cpfile %{_tmpfilesdir}/%{name}.conf}
 scl_reggen %{pkg_name}-server --cpfile %{logrotateddir}/%{daemon_name}
 scl_reggen %{pkg_name}-server --cpfile %{_sysconfdir}/my.cnf.d/server.cnf
-scl_reggen %{pkg_name}-server --selinux %{_sysconfdir}/my.cnf %{?_root_sysconfdir}/my.cnf
 scl_reggen %{pkg_name}-server --mkdir %{dbdatadir}
 scl_reggen %{pkg_name}-server --chown %{dbdatadir} mysql:mysql
 scl_reggen %{pkg_name}-server --chmod %{dbdatadir} 0755
@@ -908,7 +907,6 @@ scl_reggen %{pkg_name}-server --selinux %{dbdatadir} /var/lib/mysql
 scl_reggen %{pkg_name}-server --mkdir %{_localstatedir}/run/%{daemon_name}
 scl_reggen %{pkg_name}-server --chown %{_localstatedir}/run/%{daemon_name} mysql:mysql
 scl_reggen %{pkg_name}-server --chmod %{_localstatedir}/run/%{daemon_name} 0755
-scl_reggen %{pkg_name}-server --selinux %{_localstatedir}/run/%{daemon_name} /var/run/mysqld
 scl_reggen %{pkg_name}-server --mkdir %{logfiledir}
 scl_reggen %{pkg_name}-server --chown %{logfiledir} mysql:mysql
 scl_reggen %{pkg_name}-server --chmod %{logfiledir} 0750
@@ -1279,6 +1277,10 @@ fi
 %endif
 
 %changelog
+* Tue Jan 27 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-15
+- Do not define selinux specifically for /var/run and config, it is done
+  generally for all /etc and /var
+
 * Tue Jan 27 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-14
 - Run tests in scl environment
 
