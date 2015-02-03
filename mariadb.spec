@@ -140,7 +140,7 @@
 # Make long macros shorter
 %global sameevr   %{epoch}:%{version}-%{release}
 %global compatver 10.0
-%global bugfixver 15
+%global bugfixver 16
 
 %if 0%{?scl:1}
 %global scl_upper %{lua:print(string.upper(string.gsub(rpm.expand("%{scl}"), "-", "_")))}
@@ -148,7 +148,7 @@
 
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          19%{?with_debug:.debug}%{?dist}
+Release:          1%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1246,6 +1246,10 @@ fi
 %endif
 
 %changelog
+* Tue Feb  3 2015 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.16-9
+- Rebase to version 10.0.16
+  Resolves: #1187895
+
 * Wed Feb 18 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-19
 - Remove NFS register feature for questionable usage for DBs
 
