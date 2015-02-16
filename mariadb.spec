@@ -148,7 +148,7 @@
 
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          16%{?with_debug:.debug}%{?dist}
+Release:          17%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -359,6 +359,7 @@ Requires(posttrans): systemd
 Requires:         perl(DBI)
 Requires:         perl(DBD::mysql)
 %{?scl:Requires:%scl_runtime}
+%{?scl:Requires:%{_root_bindir}/scl_source}
 %if %{with mysql_names}
 Provides:         mysql-server = %{sameevr}
 Provides:         mysql-server%{?_isa} = %{sameevr}
@@ -1281,6 +1282,9 @@ fi
 %endif
 
 %changelog
+* Mon Feb 16 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-17
+- Require scl_source if building for scl
+
 * Tue Jan 27 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-16
 - Do not include symlink to libmysqlclient if not shipping the library
 
