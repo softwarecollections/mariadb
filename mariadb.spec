@@ -1233,15 +1233,15 @@ fi
 %endif
 
 %changelog
-* Tue Feb 10 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.16-3
+* Wed Feb 18 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.16-3
 - Fix openssl_1 test
 
-* Wed Feb  4 2015 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.16-2
+* Wed Feb 18 2015 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.16-2
 - Include new certificate for tests
 - Update lists of failing tests
   Related: #1186110
 
-* Tue Feb  3 2015 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.16-9
+* Wed Feb 18 2015 Jakub Dorňák <jdornak@redhat.com> - 1:10.0.16-1
 - Rebase to version 10.0.16
   Resolves: #1187895
 
