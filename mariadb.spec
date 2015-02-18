@@ -148,7 +148,7 @@
 
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          17%{?with_debug:.debug}%{?dist}
+Release:          18%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -743,6 +743,9 @@ touch %{buildroot}%{logfile}
 mkdir -p %{buildroot}%{_localstatedir}/run/%{daemon_name}
 install -p -m 0755 -d %{buildroot}%{dbdatadir}
 
+# create directory for socket
+%{?scl:install -p -m 0755 -d %{buildroot}/var/lib/mysql}
+
 %if %{with config}
 install -D -p -m 0644 scripts/my.cnf %{buildroot}%{_sysconfdir}/my.cnf
 %else
@@ -1221,6 +1224,7 @@ fi
 %{?scl:%{?with_init_systemd:%{_scl_scripts}/register.content%{_tmpfilesdir}}}
 %attr(0755,mysql,mysql) %dir %{_localstatedir}/run/%{daemon_name}
 %attr(0755,mysql,mysql) %dir %{dbdatadir}
+%{?scl:%attr(0755,mysql,mysql) %dir /var/lib/mysql}
 %attr(0750,mysql,mysql) %dir %{logfiledir}
 %attr(0640,mysql,mysql) %config %ghost %verify(not md5 size mtime) %{logfile}
 %config(noreplace) %{logrotateddir}/%{daemon_name}
@@ -1282,6 +1286,9 @@ fi
 %endif
 
 %changelog
+* Wed Feb 18 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-18
+- Create directory for socket in build for SCL
+
 * Mon Feb 16 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.15-17
 - Require scl_source if building for scl
 
