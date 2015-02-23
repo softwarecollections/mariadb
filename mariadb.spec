@@ -148,7 +148,7 @@
 
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          4%{?with_debug:.debug}%{?dist}
+Release:          5%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1236,6 +1236,9 @@ fi
 %endif
 
 %changelog
+* Mon Feb 23 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.16-5
+- Use --no-defaults when checking server status before starting
+
 * Wed Feb 18 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.16-4
 - Wait for daemon ends
   Resolves: #1072958
