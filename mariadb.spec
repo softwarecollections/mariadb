@@ -1245,6 +1245,8 @@ fi
 * Tue Mar 03 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.16-6
 - Do not use scl prefix more than once in paths
   Based on https://www.redhat.com/archives/sclorg/2015-February/msg00038.html
+- Check permissions when starting service on RHEL-6
+  Resolves: #1194699
 
 * Mon Feb 23 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.16-5
 - Use --no-defaults when checking server status before starting
