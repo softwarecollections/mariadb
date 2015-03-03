@@ -78,6 +78,7 @@
 %bcond_without init_systemd
 %bcond_with init_sysv
 %global daemon_name %{?scl_prefix}%{pkg_name}
+%global daemon_no_prefix %{pkg_name}
 %if ! 0%{?scl:1}
 %global mysqld_pid_dir mysqld
 %endif
@@ -85,6 +86,7 @@
 %bcond_with init_systemd
 %bcond_without init_sysv
 %global daemon_name %{?scl:%{?scl_prefix}%{pkg_name}}%{!?scl:mysqld}
+%global daemon_no_prefix %{?scl:%{pkg_name}}%{!?scl:mysqld}
 %endif
 
 # MariaDB 10.0 and later requires pcre >= 8.35, otherwise we need to use
@@ -114,10 +116,13 @@
 %global dbdatadir %{?_scl_root}/var/lib/mysql
 %endif
 
+# Directory for storing pid file
+%global pidfiledir %{?scl:%{_root_localstatedir}}%{!?scl:%{_localstatedir}}/run/%{daemon_name}
+
 # We define some system's well known locations here so we can use them easily
 # later when building to another location (like SCL)
 %global logrotateddir %{?scl:%_root_sysconfdir}%{!?scl:%_sysconfdir}/logrotate.d
-%global logfile %{logfiledir}/%{daemon_name}.log
+%global logfile %{logfiledir}/%{daemon_no_prefix}.log
 
 # Home directory of mysql user should be same for all packages that create it
 %global mysqluserhome /var/lib/mysql
@@ -148,7 +153,7 @@
 
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          5%{?with_debug:.debug}%{?dist}
+Release:          6%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -630,13 +635,14 @@ export LDFLAGS
          -DFEATURE_SET="community" \
          -DINSTALL_LAYOUT=RPM \
          -DDAEMON_NAME="%{daemon_name}" \
+         -DDAEMON_NO_PREFIX="%{daemon_no_prefix}" \
 %if 0%{?scl:1}
          -DSCL_NAME="%{?scl}" \
          -DSCL_NAME_UPPER="%{?scl_upper}" \
          -DSCL_SCRIPTS="%{?_scl_scripts}" \
 %endif
          -DLOG_LOCATION="%{logfile}" \
-         -DPID_FILE_DIR="%{_localstatedir}/run/%{daemon_name}" \
+         -DPID_FILE_DIR="%{pidfiledir}" \
          -DNICE_PROJECT_NAME="MariaDB" \
          -DRPM="%{?rhel:rhel%{rhel}}%{!?rhel:fedora%{fedora}}" \
          -DCMAKE_INSTALL_PREFIX="%{_prefix}" \
@@ -727,7 +733,7 @@ touch %{buildroot}%{logfile}
 # current setting in my.cnf is to use /var/run/mariadb for creating pid file,
 # however since my.cnf is not updated by RPM if changed, we need to create mysqld
 # as well because users can have odd settings in their /etc/my.cnf
-mkdir -p %{buildroot}%{_localstatedir}/run/%{daemon_name}
+mkdir -p %{buildroot}%{pidfiledir}
 install -p -m 0755 -d %{buildroot}%{dbdatadir}
 
 # create directory for socket
@@ -745,7 +751,7 @@ rm -f %{buildroot}%{_sysconfdir}/my.cnf
 install -D -p -m 644 scripts/mysql.service %{buildroot}%{_unitdir}/%{daemon_name}.service
 install -D -p -m 0644 scripts/mysql.tmpfiles.d %{buildroot}%{_tmpfilesdir}/%{name}.conf
 %if 0%{?mysqld_pid_dir:1}
-echo "d %{_localstatedir}/run/%{mysqld_pid_dir} 0755 mysql mysql -" >>%{buildroot}%{_tmpfilesdir}/%{name}.conf
+echo "d %{_root_localstatedir}/run/%{mysqld_pid_dir} 0755 mysql mysql -" >>%{buildroot}%{_tmpfilesdir}/%{name}.conf
 %endif
 %endif
 
@@ -1176,7 +1182,7 @@ fi
 %{_libexecdir}/mysql-scripts-common
 
 %{?with_init_systemd:%{_tmpfilesdir}/%{name}.conf}
-%attr(0755,mysql,mysql) %dir %{_localstatedir}/run/%{daemon_name}
+%attr(0755,mysql,mysql) %dir %{pidfiledir}
 %attr(0755,mysql,mysql) %dir %{dbdatadir}
 %{?scl:%attr(0755,mysql,mysql) %dir /var/lib/mysql}
 %attr(0750,mysql,mysql) %dir %{logfiledir}
@@ -1236,6 +1242,10 @@ fi
 %endif
 
 %changelog
+* Tue Mar 03 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.16-6
+- Do not use scl prefix more than once in paths
+  Based on https://www.redhat.com/archives/sclorg/2015-February/msg00038.html
+
 * Mon Feb 23 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.16-5
 - Use --no-defaults when checking server status before starting
 
