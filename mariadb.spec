@@ -204,6 +204,7 @@ Patch32:          %{pkgnamepatch}-basedir.patch
 Patch33:          %{pkgnamepatch}-covscan-signexpr.patch
 Patch34:          %{pkgnamepatch}-covscan-stroverflow.patch
 Patch36:          %{pkgnamepatch}-ssltest.patch
+Patch37:          %{pkgnamepatch}-notestdb.patch
 
 # Patches specific for scl
 Patch90:          %{pkgnamepatch}-scl-env-check.patch
@@ -562,6 +563,7 @@ MariaDB is a community developed branch of MySQL.
 %patch33 -p1
 %patch34 -p1
 %patch36 -p1
+%patch37 -p1
 
 # removing bundled cmd-line-utils
 rm -r cmd-line-utils
@@ -1247,6 +1249,8 @@ fi
   Based on https://www.redhat.com/archives/sclorg/2015-February/msg00038.html
 - Check permissions when starting service on RHEL-6
   Resolves: #1194699
+- Do not create test database by default
+  Related: #1194611
 
 * Mon Feb 23 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.16-5
 - Use --no-defaults when checking server status before starting
