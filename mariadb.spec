@@ -954,11 +954,13 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 %post server
 %if 0%{?scl:1}
 semanage fcontext -a -e "%{se_daemon_source}" "%{daemondir}/%{daemon_name}%{?with_init_systemd:.service}" >/dev/null 2>&1 || :
+semanage fcontext -a -e "/var/run/mysql" "%{pidfiledir}" >/dev/null 2>&1 || :
 selinuxenabled && load_policy || :
 restorecon -R "%{?_scl_root}/" >/dev/null 2>&1 || :
 restorecon -R "%{_sysconfdir}" >/dev/null 2>&1 || :
 restorecon -R "%{_localstatedir}" >/dev/null 2>&1 || :
 restorecon -R "%{daemondir}/%{daemon_name}%{?with_init_systemd:.service}" >/dev/null 2>&1 || :
+restorecon -R "%{pidfiledir}" >/dev/null 2>&1 || :
 %endif
 
 %if %{with init_systemd}
@@ -1250,6 +1252,7 @@ fi
 * Wed Mar 04 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-1
 - Rebase to version 10.0.17
 - Added variable for turn off skipping some tests
+- Add SELinux rules for pid file
 
 * Tue Mar 03 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.16-6
 - Do not use scl prefix more than once in paths
