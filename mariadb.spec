@@ -27,10 +27,14 @@
 # TokuDB engine is now part of MariaDB, but it is available only for x86_64;
 # variable tokudb allows to build with TokuDB storage engine
 # Temporarily disabled in F21+ for https://mariadb.atlassian.net/browse/MDEV-6446
-%ifarch 0%{?fedora} < 21 #x86_64
+%if 0%{?scl:1}
+%bcond_with tokudb
+%else
+%ifarch x86_64
 %bcond_without tokudb
 %else
 %bcond_with tokudb
+%endif
 %endif
 
 # Mroonga engine is now part of MariaDB, but it only builds for x86_64;
