@@ -955,6 +955,10 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 %if 0%{?scl:1}
 semanage fcontext -a -e "%{se_daemon_source}" "%{daemondir}/%{daemon_name}%{?with_init_systemd:.service}" >/dev/null 2>&1 || :
 semanage fcontext -a -e "/var/run/mysql" "%{pidfiledir}" >/dev/null 2>&1 || :
+%if 0%{?rhel} <= 6
+# work-around for rhbz#1194206
+semanage fcontext -a -t mysqld_log_t -f -- '/var/log/mariadb.*' >/dev/null 2>&1 || :
+%endif
 selinuxenabled && load_policy || :
 restorecon -R "%{?_scl_root}/" >/dev/null 2>&1 || :
 restorecon -R "%{_sysconfdir}" >/dev/null 2>&1 || :
@@ -1253,6 +1257,8 @@ fi
 - Rebase to version 10.0.17
 - Added variable for turn off skipping some tests
 - Add SELinux rules for pid file
+- Add SELinux definition for /var/log/mariadb.*
+  Related: #1194206
 
 * Tue Mar 03 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.16-6
 - Do not use scl prefix more than once in paths
