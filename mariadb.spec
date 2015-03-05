@@ -957,7 +957,7 @@ semanage fcontext -a -e "%{se_daemon_source}" "%{daemondir}/%{daemon_name}%{?wit
 semanage fcontext -a -e "/var/run/mysql" "%{pidfiledir}" >/dev/null 2>&1 || :
 %if 0%{?rhel} <= 6
 # work-around for rhbz#1194206
-semanage fcontext -a -t mysqld_log_t -f -- '/var/log/mariadb.*' >/dev/null 2>&1 || :
+semanage fcontext -a -t mysqld_log_t '/var/log/mariadb(/.*)?' >/dev/null 2>&1 || :
 %endif
 selinuxenabled && load_policy || :
 restorecon -R "%{?_scl_root}/" >/dev/null 2>&1 || :
