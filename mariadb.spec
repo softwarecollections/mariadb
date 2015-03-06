@@ -753,6 +753,9 @@ rm -f %{buildroot}%{_sysconfdir}/my.cnf.d/mysql-clients.cnf
 rm -f %{buildroot}%{_sysconfdir}/my.cnf
 %endif
 
+# use different config file name for each variant of server
+mv %{buildroot}%{_sysconfdir}/my.cnf.d/server.cnf %{buildroot}%{_sysconfdir}/my.cnf.d/%{pkg_name}-server.cnf
+
 # install systemd unit files and scripts for handling server startup
 %if %{with init_systemd}
 install -D -p -m 644 scripts/mysql.service %{buildroot}%{_unitdir}/%{daemon_name}.service
@@ -1130,7 +1133,7 @@ fi
 %{_bindir}/resolveip
 %{?with_tokudb:%{_bindir}/tokuftdump}
 
-%config(noreplace) %{_sysconfdir}/my.cnf.d/server.cnf
+%config(noreplace) %{_sysconfdir}/my.cnf.d/%{pkg_name}-server.cnf
 %{?with_tokudb:%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf}
 
 %{_libexecdir}/mysqld
