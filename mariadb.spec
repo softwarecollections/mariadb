@@ -201,7 +201,8 @@ Patch5:           %{pkgnamepatch}-file-contents.patch
 Patch6:           %{pkgnamepatch}-dh1024.patch
 Patch7:           %{pkgnamepatch}-scripts.patch
 Patch8:           %{pkgnamepatch}-install-db-sharedir.patch
-Patch9:           %{pkgnamepatch}-noclientlib.patch
+Patch9:           %{pkgnamepatch}-ownsetup.patch
+Patch10:          %{pkgnamepatch}-noclientlib.patch
 
 # Patches specific for this mysql package
 Patch30:          %{pkgnamepatch}-errno.patch
@@ -562,6 +563,7 @@ MariaDB is a community developed branch of MySQL.
 %patch7 -p1
 %patch8 -p1
 %patch9 -p1
+%patch10 -p1
 %patch30 -p1
 %patch31 -p1
 %patch32 -p1
