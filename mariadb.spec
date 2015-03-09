@@ -160,7 +160,7 @@
 
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          1%{?with_debug:.debug}%{?dist}
+Release:          2%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1262,6 +1262,9 @@ fi
 %endif
 
 %changelog
+* Mon Mar 09 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-2
+- Release bump
+
 * Wed Mar 04 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-1
 - Rebase to version 10.0.17
 - Added variable for turn off skipping some tests
