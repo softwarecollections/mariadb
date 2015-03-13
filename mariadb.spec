@@ -160,7 +160,7 @@
 
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          3%{?with_debug:.debug}%{?dist}
+Release:          4%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1050,8 +1050,6 @@ fi
 %if %{with clibrary}
 %files libs
 %{_libdir}/mysql/libmysqlclient.so.*
-%{_libdir}/mysql/plugin/dialog.so
-%{_libdir}/mysql/plugin/mysql_clear_password.so
 %{!?scl: %{_sysconfdir}/ld.so.conf.d/*}
 %config(noreplace) %{_sysconfdir}/my.cnf.d/client.cnf
 %endif
@@ -1071,6 +1069,8 @@ fi
 %doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
 %dir %{_libdir}/mysql
 %dir %{_datadir}/%{pkg_name}
+%{_libdir}/mysql/plugin/dialog.so
+%{_libdir}/mysql/plugin/mysql_clear_password.so
 %{_datadir}/%{pkg_name}/charsets
 %endif
 
@@ -1262,6 +1262,10 @@ fi
 %endif
 
 %changelog
+* Fri Mar 13 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-4
+- Include client plugins into -common package since they are used by both -libs
+  and base packages.
+
 * Mon Mar 09 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-3
 - Rebuild due to 'scls' removal
   Resolves: #1200048
