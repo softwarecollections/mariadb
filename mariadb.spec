@@ -187,6 +187,7 @@ Source15:         mysql-scripts-common.sh
 Source16:         mysql-check-upgrade.sh
 Source17:         mysql-wait-stop.sh
 Source19:         mysql.init.in
+Source40:         daemon-scl-helper.sh
 Source50:         rh-skipped-tests-base.list
 Source51:         rh-skipped-tests-arm.list
 Source52:         rh-skipped-tests-ppc-s390.list
@@ -781,6 +782,11 @@ install -p -m 755 scripts/mysql-check-socket %{buildroot}%{_libexecdir}/mysql-ch
 install -p -m 755 scripts/mysql-check-upgrade %{buildroot}%{_libexecdir}/mysql-check-upgrade
 install -p -m 644 scripts/mysql-scripts-common %{buildroot}%{_libexecdir}/mysql-scripts-common
 
+# daemon helper for fixing SELinux in systemd
+%if %{with init_systemd} && 0%{?scl:1}
+install -p -m 755 %{SOURCE40} %{buildroot}%{_libexecdir}/mysqld_safe-scl-helper
+%endif
+
 # Remove libmysqld.a
 rm -f %{buildroot}%{_libdir}/mysql/libmysqld.a
 
@@ -969,6 +975,10 @@ semanage fcontext -a -e "/var/run/mysql" "%{pidfiledir}" >/dev/null 2>&1 || :
 # work-around for rhbz#1194206
 semanage fcontext -a -t mysqld_log_t '/var/log/mariadb(/.*)?' >/dev/null 2>&1 || :
 %endif
+%if %{with init_systemd}
+# work-around for rhbz#1172683
+semanage fcontext -a -t mysqld_safe_exec_t %{_root_libexecdir}/mysqld_safe-scl-helper >/dev/null 2>&1 || :
+%endif
 selinuxenabled && load_policy || :
 restorecon -R "%{?_scl_root}/" >/dev/null 2>&1 || :
 restorecon -R "%{_sysconfdir}" >/dev/null 2>&1 || :
@@ -1140,6 +1150,9 @@ fi
 %{?with_tokudb:%config(noreplace) %{_sysconfdir}/my.cnf.d/tokudb.cnf}
 
 %{_libexecdir}/mysqld
+%if %{with init_systemd} && 0%{?scl:1}
+%{_libexecdir}/mysqld_safe-scl-helper
+%endif
 
 %{_libdir}/mysql/INFO_SRC
 %{_libdir}/mysql/INFO_BIN
@@ -1268,6 +1281,8 @@ fi
   and base packages.
 - Do not use libedit
   Related: #1201988
+- Daemon wrapper to run process with proper SELinux context
+  Resolves: #1202011
 
 * Mon Mar 09 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-3
 - Rebuild due to 'scls' removal
