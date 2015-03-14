@@ -1079,6 +1079,7 @@ fi
 %doc README COPYING COPYING.LESSER README.mysql-license README.mysql-docs
 %doc storage/innobase/COPYING.Percona storage/innobase/COPYING.Google
 %dir %{_libdir}/mysql
+%dir %{_libdir}/mysql/plugin
 %dir %{_datadir}/%{pkg_name}
 %{_libdir}/mysql/plugin/dialog.so
 %{_libdir}/mysql/plugin/mysql_clear_password.so
@@ -1160,7 +1161,7 @@ fi
 %dir %{_datadir}/%{pkg_name}
 %endif
 
-%{_libdir}/mysql/plugin
+%{_libdir}/mysql/plugin/*
 %{?with_oqgraph:%exclude %{_libdir}/mysql/plugin/ha_oqgraph.so}
 %{?with_connect:%exclude %{_libdir}/mysql/plugin/ha_connect.so}
 %exclude %{_libdir}/mysql/plugin/dialog.so
@@ -1283,6 +1284,7 @@ fi
   Related: #1201988
 - Daemon wrapper to run process with proper SELinux context
   Resolves: #1202011
+- Let plugin dir to be owned by -common
 
 * Mon Mar 09 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-3
 - Rebuild due to 'scls' removal
