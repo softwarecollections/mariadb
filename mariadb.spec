@@ -160,7 +160,7 @@
 
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          4%{?with_debug:.debug}%{?dist}
+Release:          5%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1277,6 +1277,9 @@ fi
 %endif
 
 %changelog
+* Sun Mar 15 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-5
+- Make openssl_1 test more robust for various openssl versions
+
 * Fri Mar 13 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-4
 - Include client plugins into -common package since they are used by both -libs
   and base packages.
