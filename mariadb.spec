@@ -160,7 +160,7 @@
 
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          5%{?with_debug:.debug}%{?dist}
+Release:          6%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -1277,6 +1277,10 @@ fi
 %endif
 
 %changelog
+* Tue Mar 17 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-6
+- Use correct comment in the init script
+  Related: #1184604
+
 * Sun Mar 15 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-5
 - Make openssl_1 test more robust for various openssl versions
 
