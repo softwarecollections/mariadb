@@ -972,6 +972,8 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 %if 0%{?scl:1}
 semanage fcontext -a -e "%{se_daemon_source}" "%{daemondir}/%{daemon_name}%{?with_init_systemd:.service}" >/dev/null 2>&1 || :
 semanage fcontext -a -e "/var/run/mysql" "%{pidfiledir}" >/dev/null 2>&1 || :
+# work-around for rhbz#1203991
+semanage fcontext -a -t mysqld_etc_t '/etc/my\.cnf\.d/.*' >/dev/null 2>&1 || :
 %if 0%{?rhel} <= 6
 # work-around for rhbz#1194206
 semanage fcontext -a -t mysqld_log_t '/var/log/mariadb(/.*)?' >/dev/null 2>&1 || :
@@ -1280,6 +1282,8 @@ fi
 %changelog
 * Fri Mar 20 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-7
 - Add dependency for semanage
+- Define SELinux context for files under /etc/my.cnf.d
+  Related: #1203991
 
 * Tue Mar 17 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-6
 - Use correct comment in the init script
