@@ -241,6 +241,8 @@ BuildRequires:    perl(Socket)
 BuildRequires:    perl(Sys::Hostname)
 BuildRequires:    perl(Test::More)
 BuildRequires:    perl(Time::HiRes)
+# for running some openssl tests rhbz#1189180
+BuildRequires:    openssl
 %{?with_init_systemd:BuildRequires: systemd}
 
 Requires:         bash
@@ -1284,6 +1286,8 @@ fi
 - Add dependency for semanage
 - Define SELinux context for files under /etc/my.cnf.d
   Related: #1203991
+- Add openssl as BuildRequires to run some openssl tests during build
+  Related: #1189180
 
 * Tue Mar 17 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-6
 - Use correct comment in the init script
