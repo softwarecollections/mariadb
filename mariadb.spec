@@ -160,7 +160,7 @@
 
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          6%{?with_debug:.debug}%{?dist}
+Release:          7%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -371,6 +371,7 @@ Requires:         perl(DBI)
 Requires:         perl(DBD::mysql)
 %{?scl:Requires:%scl_runtime}
 %{?scl:Requires:%{_root_bindir}/scl_source}
+%{?scl:Requires(post): policycoreutils-python libselinux-utils}
 %if %{with mysql_names}
 Provides:         mysql-server = %{sameevr}
 Provides:         mysql-server%{?_isa} = %{sameevr}
@@ -1277,6 +1278,9 @@ fi
 %endif
 
 %changelog
+* Fri Mar 20 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-7
+- Add dependency for semanage
+
 * Tue Mar 17 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-6
 - Use correct comment in the init script
   Related: #1184604
