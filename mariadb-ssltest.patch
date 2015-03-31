@@ -18,14 +18,6 @@ diff -up mariadb-10.0.17/mysql-test/r/openssl_1.result.p36 mariadb-10.0.17/mysql
 diff -up mariadb-10.0.17/mysql-test/t/openssl_1.test.p36 mariadb-10.0.17/mysql-test/t/openssl_1.test
 --- mariadb-10.0.17/mysql-test/t/openssl_1.test.p36	2015-02-25 16:40:55.000000000 +0100
 +++ mariadb-10.0.17/mysql-test/t/openssl_1.test	2015-03-15 23:22:52.608571473 +0100
-@@ -133,6 +133,7 @@ drop table t1;
- # and ca path to NULL
- #
- --replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA
-+--replace_result AES128-GCM-SHA256 DHE-RSA-AES256-SHA
- --exec $MYSQL --ssl --ssl-key=$MYSQL_TEST_DIR/std_data/client-key.pem --ssl-cert=$MYSQL_TEST_DIR/std_data/client-cert.pem -e "SHOW STATUS LIKE 'ssl_Cipher'" 2>&1
- --echo End of 5.0 tests
- 
 @@ -222,7 +223,7 @@ DROP TABLE t1;
  # Common ciphers to openssl and yassl
  --exec $MYSQL --host=localhost -e "SHOW STATUS LIKE 'Ssl_cipher';" --ssl-cipher=DHE-RSA-AES256-SHA
@@ -35,11 +27,3 @@ diff -up mariadb-10.0.17/mysql-test/t/openssl_1.test.p36 mariadb-10.0.17/mysql-t
  --exec $MYSQL --host=localhost -e "SHOW STATUS LIKE 'Ssl_cipher';" --ssl-cipher=RC4-SHA
  --disable_query_log
  --disable_result_log
-@@ -260,6 +261,7 @@ GRANT SELECT ON test.* TO bug42158@local
- FLUSH PRIVILEGES;
- connect(con1,localhost,bug42158,,,,,SSL);
- --replace_result DHE-RSA-AES256-GCM-SHA384 DHE-RSA-AES256-SHA
-+--replace_result AES128-GCM-SHA256 DHE-RSA-AES256-SHA
- SHOW STATUS LIKE 'Ssl_cipher';
- disconnect con1;
- connection default;

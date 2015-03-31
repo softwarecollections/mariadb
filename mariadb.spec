@@ -160,7 +160,7 @@
 
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          7%{?with_debug:.debug}%{?dist}
+Release:          8%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -942,6 +942,7 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 # avoid redundant test runs with --binlog-format=mixed
 # increase timeouts to prevent unwanted failures during mass rebuilds
 (
+  set -e
   cd mysql-test
   perl ./mysql-test-run.pl --force --retry=0 --ssl \
 %if ! %{check_testsuite}
@@ -1282,6 +1283,11 @@ fi
 %endif
 
 %changelog
+* Tue Mar 31 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-8
+- Do not replace AES cipher
+  Fail in case any command in check fails
+  Related: #1124791
+
 * Fri Mar 20 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-7
 - Add dependency for semanage
 - Define SELinux context for files under /etc/my.cnf.d
