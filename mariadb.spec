@@ -160,7 +160,7 @@
 
 Name:             %{?scl_prefix}mariadb
 Version:          %{compatver}.%{bugfixver}
-Release:          8%{?with_debug:.debug}%{?dist}
+Release:          9%{?with_debug:.debug}%{?dist}
 Epoch:            1
 
 Summary:          A community developed branch of MySQL
@@ -974,7 +974,7 @@ export MTR_BUILD_THREAD=%{__isa_bits}
 %post server
 %if 0%{?scl:1}
 semanage fcontext -a -e "%{se_daemon_source}" "%{daemondir}/%{daemon_name}%{?with_init_systemd:.service}" >/dev/null 2>&1 || :
-semanage fcontext -a -e "/var/run/mysql" "%{pidfiledir}" >/dev/null 2>&1 || :
+semanage fcontext -a -t mysqld_var_run_t "%{pidfiledir}" >/dev/null 2>&1 || :
 # work-around for rhbz#1203991
 semanage fcontext -a -t mysqld_etc_t '/etc/my\.cnf\.d/.*' >/dev/null 2>&1 || :
 %if 0%{?rhel} <= 6
@@ -1283,6 +1283,10 @@ fi
 %endif
 
 %changelog
+* Thu Apr 23 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-9
+- Define context for pid file dir explicitely
+  Resolves: #1207113
+
 * Tue Mar 31 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-8
 - Do not replace AES cipher
   Fail in case any command in check fails
