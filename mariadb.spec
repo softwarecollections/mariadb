@@ -204,6 +204,7 @@ Patch7:           %{pkgnamepatch}-scripts.patch
 Patch8:           %{pkgnamepatch}-install-db-sharedir.patch
 Patch9:           %{pkgnamepatch}-ownsetup.patch
 Patch10:          %{pkgnamepatch}-noclientlib.patch
+Patch12:          %{pkgnamepatch}-admincrash.patch
 
 # Patches specific for this mysql package
 Patch30:          %{pkgnamepatch}-errno.patch
@@ -567,6 +568,7 @@ MariaDB is a community developed branch of MySQL.
 %patch8 -p1
 %patch9 -p1
 %patch10 -p1
+%patch12 -p1
 %patch30 -p1
 %patch31 -p1
 %patch32 -p1
@@ -1286,6 +1288,8 @@ fi
 * Thu Apr 23 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-9
 - Define context for pid file dir explicitely
   Resolves: #1207113
+- Fix mysqladmin crash if run with -u root -p
+  Resolves: #1207170
 
 * Tue Mar 31 2015 Honza Horak <hhorak@redhat.com> - 1:10.0.17-8
 - Do not replace AES cipher
